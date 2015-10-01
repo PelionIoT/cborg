@@ -1,6 +1,6 @@
 {
   "name": "cborg",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "CBOR library that favors encoding and decoding, but not modifications.",
   "keywords": [],
   "author": "Marcus Chang <marcus.chang@arm.com>",
@@ -15,9 +15,7 @@
       "type": "Apache-2.0"
     }
   ],
-  "dependencies": {
-
-    },
+  "dependencies": {},
   "targetDependencies": {
     "mbed-os": {
       "mbed-drivers": "~0.9.0"
