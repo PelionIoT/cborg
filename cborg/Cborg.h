@@ -51,7 +51,7 @@ public:
 
     Cborg();
 
-    Cborg(const uint8_t* cbor, std::size_t cborLength);
+    Cborg(const uint8_t* cbor, std::size_t maxLength);
 
     bool getCBOR(const uint8_t** pointer, uint32_t* length);
 
@@ -83,16 +83,9 @@ public:
     /* debug */
     void print();
 
-
-    bool equals(const uint8_t* candidate);
-
-
-
-
-
 private:
     const uint8_t* cbor;
-    std::size_t cborLength;
+    std::size_t maxLength;
 };
 
 #endif // __CBORG_H__

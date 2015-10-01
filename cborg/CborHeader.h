@@ -25,7 +25,9 @@ class CborHeader
 {
 public:
     typedef enum {
-        TypeTag = 0x06
+        TypeTag         = 0x06,
+        TypeSpecial     = 0x07,
+        TypeNull        = 0x16
     } type_t;
 
     CborHeader() {}
@@ -34,8 +36,8 @@ public:
     {
         // reset variables
         tag = 0xFF;
-        majorType = 0xFF;
-        minorType = 0xFF;
+        majorType = TypeSpecial;
+        minorType = TypeNull;
         length = 0;
         value = 0;
 

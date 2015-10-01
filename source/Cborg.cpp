@@ -28,12 +28,12 @@
 
 Cborg::Cborg()
     :   cbor(NULL),
-        cborLength(0)
+        maxLength(0)
 {}
 
 Cborg::Cborg(const uint8_t* _cbor, std::size_t _length)
     :   cbor(_cbor),
-        cborLength(_length)
+        maxLength(_length)
 {}
 
 
@@ -68,7 +68,7 @@ bool Cborg::getCBOR(const uint8_t** pointer, uint32_t* length)
         // iterate through cbor encoded buffer
         // stop when maximum length is reached or
         // the current container is finished
-        while (index < cborLength)
+        while (index < maxLength)
         {
             // decode header for cbor object currently pointed to
             head.decode(&cbor[index]);
@@ -169,7 +169,7 @@ Cborg Cborg::find(const char* key, std::size_t keyLength)
     // iterate through cbor encoded buffer
     // stop when maximum length is reached or
     // the current map is finished
-    while (index < cborLength)
+    while (index < maxLength)
     {
         // decode header for cbor object currently pointed to
         head.decode(&cbor[index]);
@@ -230,7 +230,7 @@ Cborg Cborg::find(const char* key, std::size_t keyLength)
                                 index += head.getLength() + head.getValue();
 
                                 // return new Cborg object based on object pointer and max length
-                                return Cborg(&cbor[index], cborLength - index);
+                                return Cborg(&cbor[index], maxLength - index);
                             }
                         }
 
@@ -309,12 +309,12 @@ Cborg Cborg::at(std::size_t entry)
     // iterate through cbor encoded buffer
     // stop when maximum length is reached or
     // the current array is finished
-    while (index < cborLength)
+    while (index < maxLength)
     {
         // compare current array index with the one sought for and return if found
         if (currentEntry == entry)
         {
-            return Cborg(&cbor[index], cborLength - index);
+            return Cborg(&cbor[index], maxLength - index);
         }
         else
         {
@@ -517,14 +517,14 @@ void Cborg::print()
     std::list<uint32_t> list;
     int32_t units = 0;
 
-    while (index < cborLength)
+    while (index < maxLength)
     {
         for (std::size_t indent = 0; indent < list.size(); indent++)
         {
             printf("\t");
         }
 
-        Cborg object(&cbor[index], cborLength - index);
+        Cborg object(&cbor[index], maxLength - index);
 
         /* semantic tag */
         uint32_t tag = object.getTag();
@@ -694,27 +694,3 @@ void Cborg::print()
     }
 }
 
-
-bool Cborg::equals(const uint8_t* candidate)
-{
-    // NULL pointer check
-    if ((cbor == NULL) && (candidate == NULL))
-    {
-        return true;
-    }
-    else if ((cbor == NULL) || (candidate == NULL))
-    {
-        return false;
-    }
-
-    // byte by byte comparison
-    for (std::size_t idx = 0; idx < cborLength; idx++)
-    {
-        if (cbor[idx] != candidate[idx])
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
