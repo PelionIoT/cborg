@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef __CBOR_HEADER_H__
-#define __CBOR_HEADER_H__
+#ifndef __CBORG_HEADER_H__
+#define __CBORG_HEADER_H__
 
 #include <stdint.h>
 
 
 
-class CborHeader
+class CborgHeader
 {
 public:
     typedef enum {
@@ -30,7 +30,7 @@ public:
         TypeNull        = 0x16
     } type_t;
 
-    CborHeader() {}
+    CborgHeader() {}
 
     void decode(const uint8_t* head)
     {

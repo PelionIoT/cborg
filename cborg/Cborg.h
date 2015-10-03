@@ -20,7 +20,7 @@
 #include <stdint.h>
 #include <cstddef>
 
-#include "cborg/CborHeader.h"
+#include "cborg/CborgHeader.h"
 
 
 class Cborg
@@ -39,8 +39,8 @@ public:
     } cbor_type_t;
 
     typedef enum {
-        TypeTrue        = 0x14,
-        TypeFalse       = 0x15,
+        TypeFalse       = 0x14,
+        TypeTrue        = 0x15,
         TypeNull        = 0x16,
         TypeUndefined   = 0x17,
         TypeUnknown     = 0x18,

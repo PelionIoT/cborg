@@ -18,7 +18,7 @@
 #include "mbed.h"
 #endif
 
-#include "cborg/Cborg.h"
+#include "cborg/Cbor.h"
 
 #include <stdio.h>
 #include <string>
@@ -106,11 +106,11 @@ void test1()
 {
     Cborg top(buffer, sizeof(buffer));
 
-    printf("Test 1: CBOR object:\r\n");
+    printf("Test 1: Decode CBOR object:\r\n");
 
     top.print();
 
-    printf("\r\n");
+    printf("\r\n===============================================================================\r\n");
 }
 
 
@@ -134,7 +134,7 @@ void test2()
         endpoint.print();
     }
 
-    printf("\r\n");
+    printf("\r\n===============================================================================\r\n");
 }
 
 /*
@@ -151,7 +151,7 @@ void test3()
 
     printfCborg(intent);
 
-    printf("\r\n");
+    printf("\r\n===============================================================================\r\n");
 }
 
 
@@ -200,6 +200,297 @@ void test4()
             }
         }
     }
+
+    printf("\r\n===============================================================================\r\n");
+}
+
+
+/*
+    Test primitives
+*/
+void test5()
+{
+    printf("Test 5: Encode primitives\r\n");
+
+    uint8_t buffer[100];
+
+    /* Test NULL */
+    {
+        printf("CBOR NULL: ");
+
+        Cbor cbornull;
+
+        uint32_t written = cbornull.writeCBOR(buffer, sizeof(buffer));
+
+        for (std::size_t idx = 0; idx < written; idx++)
+        {
+            printf("%02X", buffer[idx]);
+        }
+        printf("\r\n");
+
+        // cross check
+        printf("Cross check: ");
+        Cborg borg(buffer, sizeof(buffer));
+        borg.print();
+        printf("\r\n");
+    }
+
+    /* Test true */
+    {
+        printf("CBOR true: ");
+
+        CborBool cborbool(true);
+
+        uint32_t written = cborbool.writeCBOR(buffer, sizeof(buffer));
+
+        for (std::size_t idx = 0; idx < written; idx++)
+        {
+            printf("%02X", buffer[idx]);
+        }
+        printf("\r\n");
+
+        // cross check
+        printf("Cross check: ");
+        Cborg borg(buffer, sizeof(buffer));
+        borg.print();
+        printf("\r\n");
+    }
+
+    /* Test false */
+    {
+        printf("CBOR false: ");
+
+        CborBool cborbool(false);
+
+        uint32_t written = cborbool.writeCBOR(buffer, sizeof(buffer));
+
+        for (std::size_t idx = 0; idx < written; idx++)
+        {
+            printf("%02X", buffer[idx]);
+        }
+        printf("\r\n");
+
+        // cross check
+        printf("Cross check: ");
+        Cborg borg(buffer, sizeof(buffer));
+        borg.print();
+        printf("\r\n");
+    }
+
+    /* Test string from const string */
+    {
+        printf("CBOR const string with tag [1234][Attention, the Universe!]: ");
+
+        CborString cborstr("Attention, the Universe!");
+
+        cborstr.setTag(1234);
+
+        uint32_t written = cborstr.writeCBOR(buffer, sizeof(buffer));
+
+        for (std::size_t idx = 0; idx < written; idx++)
+        {
+            printf("%02X", buffer[idx]);
+        }
+        printf("\r\n");
+
+        // cross check
+        printf("Cross check: ");
+        Cborg borg(buffer, sizeof(buffer));
+        borg.print();
+        printf("\r\n");
+    }
+
+    /* Test string from char array with length */
+    {
+        printf("CBOR char array with tag [1234][Hello World!]: ");
+
+        const char str[] = "Hello World!";
+        CborString cborstr(str, sizeof(str) - 1);
+        cborstr.setTag(1234);
+
+        uint8_t buffer[100];
+        std::size_t index = 0;
+
+        uint32_t written = cborstr.writeCBOR(buffer, sizeof(buffer));
+
+        for (std::size_t idx = 0; idx < written; idx++)
+        {
+            printf("%02X", buffer[idx]);
+        }
+        printf("\r\n");
+
+        // cross check
+        printf("Cross check: ");
+        Cborg borg(buffer, sizeof(buffer));
+        borg.print();
+        printf("\r\n");
+    }
+
+    /* Test byte array from array with length */
+    {
+        printf("CBOR byte array with tag [1234]{ 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF }: ");
+
+        const uint8_t bytes[] = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF };
+        CborBytes cborbytes(bytes, sizeof(bytes));
+        cborbytes.setTag(1234);
+
+        uint32_t written = cborbytes.writeCBOR(buffer, sizeof(buffer));
+
+        for (std::size_t idx = 0; idx < written; idx++)
+        {
+            printf("%02X", buffer[idx]);
+        }
+        printf("\r\n");
+
+        // cross check
+        printf("Cross check: ");
+        Cborg borg(buffer, sizeof(buffer));
+        borg.print();
+        printf("\r\n");
+    }
+
+    /* Test integers */
+    {
+        printf("CBOR positive integer [1234567890]: ");
+
+        uint32_t positive = 0x499602D2;
+
+        CborInteger cborpos(positive);
+
+        uint32_t written = cborpos.writeCBOR(buffer, sizeof(buffer));
+
+        for (std::size_t idx = 0; idx < written; idx++)
+        {
+            printf("%02X", buffer[idx]);
+        }
+        printf("\r\n");
+
+        // cross check
+        printf("Cross check: ");
+        Cborg borg(buffer, sizeof(buffer));
+        borg.print();
+        printf("\r\n");
+    }
+
+    {
+        printf("CBOR negative integer [-1234567890]: ");
+
+        int32_t negative = -1234567890;
+
+        CborInteger cborneg(negative);
+
+        uint32_t written = cborneg.writeCBOR(buffer, sizeof(buffer));
+
+        for (std::size_t idx = 0; idx < written; idx++)
+        {
+            printf("%02X", buffer[idx]);
+        }
+        printf("\r\n");
+
+        // cross check
+        printf("Cross check: ");
+        Cborg borg(buffer, sizeof(buffer));
+        borg.print();
+        printf("\r\n");
+    }
+
+    printf("\r\n===============================================================================\r\n");
+}
+
+/*
+    Test container classes
+*/
+void test6()
+{
+    printf("Test 6: Encode container classes\r\n");
+
+    uint8_t buffer[200];
+
+    {
+        // top array
+        CborArray<10> array;
+
+        CborString str1("string 1");
+        CborString str2("string 2");
+        str1.setTag(1);
+        str2.setTag(2);
+        array.insert(str1);
+        array.insert(str2);
+
+            // sub array
+            CborArray<3> subarray;
+            subarray.setTag(3);
+            CborString substr1("substring 1");
+            CborString substr2("substring 2");
+            CborString substr3("substring 3");
+            substr1.setTag(31);
+            substr2.setTag(32);
+            substr3.setTag(33);
+            subarray.insert(substr1);
+            subarray.insert(substr2);
+            subarray.insert(substr3);
+
+        array.insert(subarray);
+
+        CborString str3("string 3");
+        str3.setTag(4);
+        array.insert(str3);
+
+            // sub map
+            CborMap<5> submap;
+            submap.setTag(5);
+            CborString key1("key1");
+            CborString value1("value1");
+            CborInteger key2(7);
+            CborInteger value2(-8);
+
+            value1.setTag(51);
+            value2.setTag(52);
+
+            submap.insert(key1, value1);
+            submap.insert(&key2, &value2);
+
+                CborString key3("key3");
+                CborArray<2> value3;
+                value3.setTag(53);
+                CborString subvalue1("subvalue1");
+                CborString subvalue2("subvalue2");
+                subvalue1.setTag(531);
+                subvalue2.setTag(532);
+                value3.insert(&subvalue1);
+                value3.insert(&subvalue2);
+
+            submap.insert(key3, value3);
+
+        array.insert(submap);
+
+        CborInteger int1(5);
+        CborInteger int2(-5);
+        int1.setTag(6);
+        int2.setTag(7);
+
+        array.insert(int1);
+        array.insert(int2);
+
+        printf("Test debug print\r\n");
+        array.print();
+
+        printf("Test CBOR encoding\r\n");
+        uint32_t written = array.writeCBOR(buffer, sizeof(buffer));
+
+        for (std::size_t idx = 0; idx < written; idx++)
+        {
+            printf("%02X", buffer[idx]);
+        }
+        printf("\r\n");
+
+        // cross check
+        printf("Test CBOR decoding and print out\r\n");
+        Cborg borg(buffer, sizeof(buffer));
+        borg.print();
+        printf("\r\n");
+
+    }
 }
 
 /*****************************************************************************/
@@ -211,6 +502,8 @@ void app_start(int, char *[])
     test2();
     test3();
     test4();
+    test5();
+    test6();
 }
 
 /*****************************************************************************/
