@@ -39,6 +39,7 @@ public:
         TypeMap         = 0x05,
         TypeTag         = 0x06,
         TypeSpecial     = 0x07,
+        TypeRaw         = 0xFE,
         TypeUnassigned  = 0xFF
     } MajorType_t;
 

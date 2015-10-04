@@ -14,154 +14,16 @@
  * limitations under the License.
  */
 
-#ifndef __CBORMAP_H__
-#define __CBORMAP_H__
+#ifndef __CBOR_MAP_H__
+#define __CBOR_MAP_H__
 
-#include <stdint.h>
-#include <cstddef>
-#include <list>
+#include "cborg/CborMapStatic.h"
+#include "cborg/CborMapDynamic.h"
 
-#include "cborg/CborBase.h"
-#include "cborg/CborString.h"
+#if defined(YOTTA_CONFIG_CBOR_STATIC)
+#define CborMap CborMapStatic
+#else
+#define CborMap CborMapDynamic
+#endif
 
-#include <stdio.h>
-
-template <std::size_t I>
-class CborMap : public CborBase
-{
-public:
-    CborMap()
-        :   CborBase(TypeMap, TypeUndefined),
-            size(0)
-    {}
-
-    bool insert(CborBase& key, CborBase& value)
-    {
-        if (size < I)
-        {
-            internalKey[size] = &key;
-            internalValue[size] = &value;
-            size++;
-
-            return true;
-        }
-
-        return false;
-    }
-
-    bool insert(CborBase* key, CborBase* value)
-    {
-        if (size < I)
-        {
-            internalKey[size] = key;
-            internalValue[size] = value;
-            size++;
-
-            return true;
-        }
-
-        return false;
-    }
-
-    virtual CborBase* key(std::size_t index)
-    {
-        if (index < size)
-        {
-            return internalKey[index];
-        }
-
-        return &CborNull;
-    }
-
-    virtual CborBase* value(std::size_t index)
-    {
-        if (index < size)
-        {
-            return internalValue[index];
-        }
-
-        return &CborNull;
-    }
-
-    /*************************************************************************/
-    /* Container                                                             */
-    /*************************************************************************/
-
-    virtual uint32_t getLength() const
-    {
-        return size;
-    }
-
-    virtual uint32_t getSize() const
-    {
-        return size;
-    }
-
-    /*************************************************************************/
-    /* Encode                                                                */
-    /*************************************************************************/
-
-    virtual uint32_t writeCBOR(uint8_t* destination, uint32_t maxLength)
-    {
-        uint32_t written = 0;
-
-        if (destination)
-        {
-            std::list<CborBase*> queue;
-
-            // write tag if set
-            if (tag != TypeUnassigned)
-            {
-                written += writeTypeAndValue(destination, maxLength, TypeTag, tag);
-            }
-
-            written += CborBase::writeTypeAndValue(&destination[written], maxLength, TypeMap, size);
-
-            // dump array to FILO queue
-            for (std::size_t idx = 0; idx < size; idx++)
-            {
-                queue.push_back(value(size - 1 - idx));
-                queue.push_back(key(size - 1 - idx));
-            }
-
-            written += CborBase::writeQueue(&destination[written], maxLength - written, queue);
-        }
-
-        return written;
-    }
-
-    /*************************************************************************/
-    /* Debug                                                                 */
-    /*************************************************************************/
-
-    virtual void print()
-    {
-        if (tag != TypeUnassigned)
-        {
-            printf("[%u] ", tag);
-        }
-
-        printf("Map: %u\r\n", size);
-
-        if (size > 0)
-        {
-            // dump array to FILO queue
-            std::list<CborBase*> queue;
-
-            for (std::size_t idx = 0; idx < size; idx++)
-            {
-                queue.push_back(value(size - 1 - idx));
-                queue.push_back(key(size - 1 - idx));
-            }
-
-            CborBase::printQueue(queue);
-        }
-    }
-
-private:
-    CborBase* internalKey[I];
-    CborBase* internalValue[I];
-    uint32_t size;
-};
-
-#endif // __CBORMAP_H__
+#endif // __CBOR_MAP_H__

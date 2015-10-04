@@ -527,10 +527,12 @@ void Cborg::print()
     CborgHeader head;
     std::size_t progress = 0;
     std::list<uint32_t> list;
-    int32_t units = 0;
+    int32_t units = 1;
 
     while (progress < maxLength)
     {
+        units--;
+
         for (std::size_t indent = 0; indent < list.size(); indent++)
         {
             printf("\t");
@@ -679,22 +681,23 @@ void Cborg::print()
                     break;
 
                 default:
-                            break;
-            }
-
-            while (units == 0)
-            {
-                DEBUG_PRINTF("%lu: done\r\n", list.size());
-
-                if (list.size() > 0)
-                {
-                    units = list.back();
-                    list.pop_back();
-                }
-                else
-                {
                     return;
-                }
+                    break;
+            }
+        }
+
+        while (units == 0)
+        {
+            DEBUG_PRINTF("%lu: done\r\n", list.size());
+
+            if (list.size() > 0)
+            {
+                units = list.back();
+                list.pop_back();
+            }
+            else
+            {
+                return;
             }
         }
 
@@ -709,8 +712,6 @@ void Cborg::print()
         {
             progress += head.getLength();
         }
-
-        units--;
     }
 }
 

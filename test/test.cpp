@@ -408,7 +408,7 @@ void test6()
 
     {
         // top array
-        CborArray<10> array;
+        CborArray array;
 
         CborString str1("string 1");
         CborString str2("string 2");
@@ -418,7 +418,7 @@ void test6()
         array.insert(str2);
 
             // sub array
-            CborArray<3> subarray;
+            CborArrayStatic<3> subarray;
             subarray.setTag(3);
             CborString substr1("substring 1");
             CborString substr2("substring 2");
@@ -437,21 +437,19 @@ void test6()
         array.insert(str3);
 
             // sub map
-            CborMap<5> submap;
+            CborMap submap;
             submap.setTag(5);
             CborString key1("key1");
             CborString value1("value1");
-            CborInteger key2(7);
             CborInteger value2(-8);
 
             value1.setTag(51);
             value2.setTag(52);
 
             submap.insert(key1, value1);
-            submap.insert(&key2, &value2);
+            submap.insert(7, &value2);
 
-                CborString key3("key3");
-                CborArray<2> value3;
+                CborArray value3;
                 value3.setTag(53);
                 CborString subvalue1("subvalue1");
                 CborString subvalue2("subvalue2");
@@ -459,8 +457,9 @@ void test6()
                 subvalue2.setTag(532);
                 value3.insert(&subvalue1);
                 value3.insert(&subvalue2);
+                value3.insert("eight nine");
 
-            submap.insert(key3, value3);
+            submap.insert("key3", value3);
 
         array.insert(submap);
 
@@ -471,6 +470,7 @@ void test6()
 
         array.insert(int1);
         array.insert(int2);
+        array.insert(1234);
 
         printf("Test debug print\r\n");
         array.print();

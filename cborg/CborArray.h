@@ -14,139 +14,16 @@
  * limitations under the License.
  */
 
-#ifndef __CBORARRAY_H__
-#define __CBORARRAY_H__
+#ifndef __CBOR_ARRAY_H__
+#define __CBOR_ARRAY_H__
 
-#include <stdint.h>
-#include <cstddef>
-#include <list>
+#include "cborg/CborArrayStatic.h"
+#include "cborg/CborArrayDynamic.h"
 
-#include "cborg/CborBase.h"
+#if defined(YOTTA_CONFIG_CBOR_STATIC)
+#define CborArray CborArrayStatic
+#else
+#define CborArray CborArrayDynamic
+#endif
 
-#include <stdio.h>
-
-template <std::size_t I>
-class CborArray : public CborBase
-{
-public:
-    CborArray()
-        :   CborBase(TypeArray, TypeUndefined),
-            size(0)
-    {}
-
-    bool insert(CborBase& item)
-    {
-        if (size < I)
-        {
-            internalArray[size] = &item;
-            size++;
-
-            return true;
-        }
-
-        return false;
-    }
-
-    bool insert(CborBase* item)
-    {
-        if (size < I)
-        {
-            internalArray[size] = item;
-            size++;
-
-            return true;
-        }
-
-        return false;
-    }
-
-    virtual CborBase* at(std::size_t index)
-    {
-        if (index < size)
-        {
-            return internalArray[index];
-        }
-
-        return &CborNull;
-    }
-
-    /*************************************************************************/
-    /* Container                                                             */
-    /*************************************************************************/
-
-    virtual uint32_t getLength() const
-    {
-        return size;
-    }
-
-    virtual uint32_t getSize() const
-    {
-        return size;
-    }
-
-    /*************************************************************************/
-    /* Encode                                                                */
-    /*************************************************************************/
-
-    virtual uint32_t writeCBOR(uint8_t* destination, uint32_t maxLength)
-    {
-        uint32_t written = 0;
-
-        if (destination)
-        {
-            std::list<CborBase*> queue;
-
-            // write tag if set
-            if (tag != TypeUnassigned)
-            {
-                written += writeTypeAndValue(destination, maxLength, TypeTag, tag);
-            }
-
-            written += CborBase::writeTypeAndValue(&destination[written], maxLength - written, TypeArray, size);
-
-            // dump array to FILO queue
-            for (std::size_t idx = 0; idx < size; idx++)
-            {
-                // use at-function to ensure integrity
-                queue.push_back(at(size - 1 - idx));
-            }
-
-            written += CborBase::writeQueue(&destination[written], maxLength - written, queue);
-        }
-
-        return written;
-    }
-
-    /*************************************************************************/
-    /* Debug                                                                 */
-    /*************************************************************************/
-
-    virtual void print()
-    {
-        if (tag != TypeUnassigned)
-        {
-            printf("[%u] ", tag);
-        }
-
-        printf("Array: %u\r\n", size);
-
-        if (size > 0)
-        {
-            // dump array to FILO queue
-            std::list<CborBase*> queue;
-
-            for (std::size_t idx = 0; idx < size; idx++)
-            {
-                queue.push_back(at(size - 1 - idx));
-            }
-
-            CborBase::printQueue(queue);
-        }
-    }
-
-private:
-    CborBase* internalArray[I];
-    uint32_t size;
-};
-
-#endif // __CBORARRAY_H__
+#endif // __CBOR_ARRAY_H__

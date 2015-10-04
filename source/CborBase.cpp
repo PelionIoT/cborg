@@ -119,6 +119,8 @@ void CborBase::printQueue(std::list<CborBase*> queue)
 
         if (currentObject)
         {
+            units--;
+
             // indent
             for (std::size_t idx = 0; idx < indentation; idx++)
             {
@@ -130,6 +132,7 @@ void CborBase::printQueue(std::list<CborBase*> queue)
 
             if (type == CborBase::TypeArray)
             {
+
                 // print tag if set
                 uint32_t subtag = currentObject->getTag();
                 if (subtag != TypeUnassigned)
@@ -149,7 +152,6 @@ void CborBase::printQueue(std::list<CborBase*> queue)
                     }
 
                     // fix indentation
-                    units--;
                     progress.push_back(units);
                     units = items;
                     indentation++;
@@ -177,7 +179,6 @@ void CborBase::printQueue(std::list<CborBase*> queue)
                     }
 
                     // fix indentation
-                    units--;
                     progress.push_back(units);
                     units = 2 * items;
                     indentation++;
@@ -186,14 +187,13 @@ void CborBase::printQueue(std::list<CborBase*> queue)
             else
             {
                 currentObject->print();
+            }
 
-                units--;
-                while ((units == 0) && (progress.size() > 0))
-                {
-                    units = progress.back();
-                    progress.pop_back();
-                    indentation--;
-                }
+            while ((units == 0) && (progress.size() > 0))
+            {
+                units = progress.back();
+                progress.pop_back();
+                indentation--;
             }
         }
     }
