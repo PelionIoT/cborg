@@ -36,7 +36,7 @@ public:
         TypeTag         = 0x06,
         TypeSpecial     = 0x07,
         TypeUnassigned  = 0xFF
-    } cbor_type_t;
+    } major_type_t;
 
     typedef enum {
         TypeFalse       = 0x14,
@@ -53,7 +53,9 @@ public:
 
     Cborg(const uint8_t* cbor, std::size_t maxLength);
 
+    /* Decode methods */
     bool getCBOR(const uint8_t** pointer, uint32_t* length);
+    uint32_t getCBORLength();
 
     /* map functions */
     template <std::size_t I>

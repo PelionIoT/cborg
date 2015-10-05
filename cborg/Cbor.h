@@ -25,6 +25,7 @@
 #include "cborg/CborArray.h"
 #include "cborg/CborMap.h"
 #include "cborg/CborBool.h"
+#include "cborg/Cbore.h"
 #include "cborg/Cborg.h"
 
 typedef CborBase Cbor;

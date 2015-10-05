@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __CBORMAP_H__
-#define __CBORMAP_H__
+#ifndef __CBOR_MAP_DYNAMIC_H__
+#define __CBOR_MAP_DYNAMIC_H__
 
 #include <stdint.h>
 #include <cstddef>
@@ -222,4 +222,4 @@ private:
     std::vector<CborBase*> internalValue;
 };
 
-#endif // __CBORMAP_H__
+#endif // __CBOR_MAP_DYNAMIC_H__

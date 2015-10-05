@@ -88,6 +88,16 @@ public:
         return true;
     }
 
+    bool insert(int32_t item)
+    {
+        CborBase* object = new CborInteger(item);
+
+        garbagebin.push_back(object);
+        internalArray.push_back(object);
+
+        return true;
+    }
+
     /*
     */
 

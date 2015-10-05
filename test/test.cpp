@@ -402,13 +402,13 @@ void test5()
 */
 void test6()
 {
-    printf("Test 6: Encode container classes\r\n");
+    printf("Test 6: Encode static container classes\r\n");
 
     uint8_t buffer[200];
 
     {
         // top array
-        CborArray array;
+        CborArrayStatic<8> array;
 
         CborString str1("string 1");
         CborString str2("string 2");
@@ -437,39 +437,115 @@ void test6()
         array.insert(str3);
 
             // sub map
-            CborMap submap;
+            CborMapStatic<3> submap;
             submap.setTag(5);
             CborString key1("key1");
             CborString value1("value1");
+            CborInteger key2(7);
             CborInteger value2(-8);
 
             value1.setTag(51);
             value2.setTag(52);
 
             submap.insert(key1, value1);
-            submap.insert(7, &value2);
+            submap.insert(&key2, &value2);
 
-                CborArray value3;
+                CborString key3("key3");
+                CborArrayStatic<3> value3;
                 value3.setTag(53);
                 CborString subvalue1("subvalue1");
                 CborString subvalue2("subvalue2");
+                CborString subvalue3("eight nine");
                 subvalue1.setTag(531);
                 subvalue2.setTag(532);
                 value3.insert(&subvalue1);
                 value3.insert(&subvalue2);
-                value3.insert("eight nine");
+                value3.insert(subvalue3);
 
-            submap.insert("key3", value3);
+            submap.insert(key3, value3);
 
         array.insert(submap);
 
         CborInteger int1(5);
         CborInteger int2(-5);
+        CborInteger int3(1234);
         int1.setTag(6);
         int2.setTag(7);
 
         array.insert(int1);
         array.insert(int2);
+        array.insert(int3);
+
+        printf("Test debug print\r\n");
+        array.print();
+
+        printf("Test CBOR encoding\r\n");
+        uint32_t written = array.writeCBOR(buffer, sizeof(buffer));
+
+        for (std::size_t idx = 0; idx < written; idx++)
+        {
+            printf("%02X", buffer[idx]);
+        }
+        printf("\r\n");
+
+        // cross check
+        printf("Test CBOR decoding and print out\r\n");
+        Cborg borg(buffer, sizeof(buffer));
+        borg.print();
+        printf("\r\n");
+
+    }
+}
+
+/*
+    Test container classes
+*/
+void test7()
+{
+    printf("Test 6: Encode dynamic container classes\r\n");
+
+    uint8_t buffer[200];
+
+    {
+        // top array
+        CborArray array;
+
+        array.insert("string 1");
+        array.insert("string 2");
+
+            // sub array
+            CborArray subarray;
+            subarray.setTag(3);
+            subarray.insert("substring 1");
+            subarray.insert("substring 2");
+            subarray.insert("substring 3");
+
+        array.insert(subarray);
+        array.insert("string 3");
+
+            // sub map
+            CborMap submap;
+            submap.setTag(5);
+            CborString value1("value1");
+            CborInteger value2(-8);
+
+            value1.setTag(51);
+            value2.setTag(52);
+
+            submap.insert("key1", value1);
+            submap.insert(7, &value2);
+
+                CborArray value3;
+                value3.setTag(53);
+                value3.insert("subvalue1");
+                value3.insert("subvalue2");
+                value3.insert("eight nine");
+
+            submap.insert("key3", value3);
+
+        array.insert(submap);
+        array.insert(5);
+        array.insert(-5);
         array.insert(1234);
 
         printf("Test debug print\r\n");
@@ -493,17 +569,52 @@ void test6()
     }
 }
 
+void test8()
+{
+    uint8_t buffer[200];
+
+    Cbore encoder(buffer, sizeof(buffer));
+
+    encoder.print();
+    encoder.tag(1234)
+            .array(3)
+                .write("Attention, the Universe!")
+                .write("Hello World!")
+                .map(4)
+                    .item("key1", "value1")
+                    .item("key2", 2)
+                    .item(3, "value3")
+                    .item(4, 4);
+    encoder.print();
+
+    for (std::size_t idx = 0; idx < encoder.getLength(); idx++)
+    {
+        printf("%02X", buffer[idx]);
+    }
+    printf("\r\n");
+
+    // cross check
+    printf("Test CBOR decoding and print out\r\n");
+    Cborg decoder(buffer, sizeof(buffer));
+    decoder.print();
+    printf("\r\n");
+}
+
 /*****************************************************************************/
 /* App start                                                                 */
 /*****************************************************************************/
 void app_start(int, char *[])
 {
+#if 0
     test1();
     test2();
     test3();
     test4();
     test5();
     test6();
+    test7();
+#endif
+    test8();
 }
 
 /*****************************************************************************/
