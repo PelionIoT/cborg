@@ -52,32 +52,169 @@ Cbore& Cbore::tag(uint32_t tag)
 {
     if ((cbor) && (itemSize(tag) <= (maxLength - currentLength)))
     {
-        writeTypeAndValue(TypeTag, tag);
+        writeTypeAndValue(CborBase::TypeTag, tag);
     }
 
     return *this;
 }
 
+/*************************************************************************/
+/* Array creation                                                        */
+/*************************************************************************/
+
+// create arrray in array
 Cbore& Cbore::array(std::size_t items)
 {
     if ((cbor) && (itemSize(items) <= (maxLength - currentLength)))
     {
-        writeTypeAndValue(TypeArray, items);
+        writeTypeAndValue(CborBase::TypeArray, items);
     }
 
     return *this;
 }
 
+// create array in map <integer, array>
+Cbore& Cbore::array(int32_t key, std::size_t size)
+{
+    if ((itemSize(key) + itemSize(size)) <= (maxLength - currentLength))
+    {
+        if (key < 0)
+        {
+            writeTypeAndValue(CborBase::TypeNegative, -1 - key);
+        }
+        else
+        {
+            writeTypeAndValue(CborBase::TypeUnsigned, key);
+        }
+
+        writeTypeAndValue(CborBase::TypeArray, size);
+    }
+
+    return *this;
+}
+
+/*************************************************************************/
+/* Array insertion                                                       */
+/*************************************************************************/
+
+// insert integer
+Cbore& Cbore::item(int32_t value)
+{
+    if (itemSize(value) <= (maxLength - currentLength))
+    {
+        if (value < 0)
+        {
+            writeTypeAndValue(CborBase::TypeNegative, -1 - value);
+        }
+        else
+        {
+            writeTypeAndValue(CborBase::TypeUnsigned, value);
+        }
+    }
+
+    return *this;
+}
+
+// insert simple type
+Cbore& Cbore::item(CborBase::SimpleType_t simpleType)
+{
+    if (currentLength < maxLength)
+    {
+        cbor[currentLength++] = CborBase::TypeSpecial << 5 | simpleType;
+    }
+
+    return *this;
+}
+
+/*************************************************************************/
+/* Map creation                                                          */
+/*************************************************************************/
+
+// create map in array
 Cbore& Cbore::map(std::size_t items)
 {
     if ((cbor) && (itemSize(items) <= (maxLength - currentLength)))
     {
-        writeTypeAndValue(TypeMap, items);
+        writeTypeAndValue(CborBase::TypeMap, items);
     }
 
     return *this;
 }
 
+// create map in map <integer, map>
+Cbore& Cbore::map(int32_t key, std::size_t size)
+{
+    if ((itemSize(key) + itemSize(size)) <= (maxLength - currentLength))
+    {
+        if (key < 0)
+        {
+            writeTypeAndValue(CborBase::TypeNegative, -1 - key);
+        }
+        else
+        {
+            writeTypeAndValue(CborBase::TypeUnsigned, key);
+        }
+
+        writeTypeAndValue(CborBase::TypeMap, size);
+    }
+
+    return *this;
+}
+
+/*************************************************************************/
+/* Map insertion                                                         */
+/*************************************************************************/
+
+// insert <integer, integer>
+Cbore& Cbore::item(int32_t key, int32_t value)
+{
+    if ((itemSize(key) + itemSize(value)) <= (maxLength - currentLength))
+    {
+        if (key < 0)
+        {
+            writeTypeAndValue(CborBase::TypeNegative, -1 - key);
+        }
+        else
+        {
+            writeTypeAndValue(CborBase::TypeUnsigned, key);
+        }
+
+        if (value < 0)
+        {
+            writeTypeAndValue(CborBase::TypeNegative, -1 - value);
+        }
+        else
+        {
+            writeTypeAndValue(CborBase::TypeUnsigned, value);
+        }
+    }
+
+    return *this;
+}
+
+// insert <integer, simple type>
+Cbore& Cbore::item(int32_t key, CborBase::SimpleType_t value)
+{
+    if (itemSize(key) + 1 <= (maxLength - currentLength))
+    {
+        if (key < 0)
+        {
+            writeTypeAndValue(CborBase::TypeNegative, -1 - key);
+        }
+        else
+        {
+            writeTypeAndValue(CborBase::TypeUnsigned, key);
+        }
+
+        cbor[currentLength++] = CborBase::TypeSpecial << 5 | value;
+    }
+
+    return *this;
+}
+
+/*****************************************************************************/
+/* Helper Functions                                                          */
+/*****************************************************************************/
 
 uint8_t Cbore::itemSize(int32_t item)
 {
@@ -101,11 +238,11 @@ uint8_t Cbore::itemSize(int32_t item)
     }
 }
 
-uint8_t Cbore::writeTypeAndValue(major_type_t majorType, uint32_t value)
+uint8_t Cbore::writeTypeAndValue(CborBase::MajorType_t majorType, uint32_t value)
 {
     if (cbor)
     {
-        if (majorType < TypeSpecial)
+        if (majorType < CborBase::TypeSpecial)
         {
             uint8_t majorTypeHigh = majorType << 5;
 
@@ -166,8 +303,6 @@ uint8_t Cbore::writeTypeAndValue(major_type_t majorType, uint32_t value)
 
 uint32_t Cbore::writeBytes(const uint8_t* source, uint32_t length)
 {
-    printf("write: %p %p %u %u %u\r\n", cbor, source, length, currentLength, maxLength);
-
     if ((cbor) && (source) && (length <= (maxLength - currentLength)))
     {
         memcpy(&cbor[currentLength], source, length);
@@ -185,5 +320,6 @@ uint32_t Cbore::writeBytes(const uint8_t* source, uint32_t length)
 
 void Cbore::print()
 {
-
+    Cborg decoder(cbor, maxLength);
+    decoder.print();
 }

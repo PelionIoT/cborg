@@ -567,6 +567,22 @@ bool Cborg::getString(const char** pointer, uint32_t* length) const
     }
 }
 
+bool Cborg::getString(std::string& str) const
+{
+    CborgHeader head;
+    head.decode(cbor);
+
+    if (head.getMajorType() == Cborg::TypeString)
+    {
+        str.assign((const char*) &cbor[head.getLength()], head.getValue());
+
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
 
 /*****************************************************************************/
 /* Header related                                                            */

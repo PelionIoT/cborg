@@ -196,7 +196,26 @@ void test4()
             {
                 std::string objectString(name, length);
 
-                printf("String: %s\r\n", objectString.c_str());
+                printf("String (pointer, length): %s\r\n", objectString.c_str());
+            }
+        }
+    }
+
+    // string
+    {
+        Cborg object =  top.find("body").find("name");
+
+        const char* name = NULL;
+        uint32_t length;
+
+        if (object.getType() == Cborg::TypeString)
+        {
+            std::string objectString;
+            bool restult = object.getString(objectString);
+
+            if (restult)
+            {
+                printf("String (std::string): %s\r\n", objectString.c_str());
             }
         }
     }
@@ -575,16 +594,28 @@ void test8()
 
     Cbore encoder(buffer, sizeof(buffer));
 
-    encoder.print();
     encoder.tag(1234)
-            .array(3)
-                .write("Attention, the Universe!")
-                .write("Hello World!")
+            .array(6)
+                .item("Attention, the Universe!")
+                .item("Hello World!")
                 .map(4)
                     .item("key1", "value1")
-                    .item("key2", 2)
+                    .array("key2", 3)
+                        .item("one")
+                        .item("two")
+                        .item("three")
                     .item(3, "value3")
-                    .item(4, 4);
+                    .map("key4", 3)
+                        .item("key5", Cbor::TypeNull)
+                        .item(6, Cbor::TypeFalse)
+                        .array(7, 3)
+                            .item(1)
+                            .item(2)
+                            .item(3)
+                .item(-10)
+                .item(10)
+                .item(Cbor::TypeTrue);
+
     encoder.print();
 
     for (std::size_t idx = 0; idx < encoder.getLength(); idx++)
@@ -605,15 +636,14 @@ void test8()
 /*****************************************************************************/
 void app_start(int, char *[])
 {
-#if 0
-    test1();
-    test2();
-    test3();
+//    test1();
+//    test2();
+//    test3();
     test4();
-    test5();
-    test6();
-    test7();
-#endif
+//    test5();
+//    test6();
+//    test7();
+
     test8();
 }
 

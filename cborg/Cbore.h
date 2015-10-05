@@ -21,34 +21,11 @@
 #include <cstddef>
 
 #include "cborg/CborgHeader.h"
-
+#include "cborg/CborBase.h"
 
 class Cbore
 {
 public:
-    typedef enum {
-        TypeUnsigned    = 0x00,
-        TypeNegative    = 0x01,
-        TypeBytes       = 0x02,
-        TypeString      = 0x03,
-        TypeArray       = 0x04,
-        TypeMap         = 0x05,
-        TypeTag         = 0x06,
-        TypeSpecial     = 0x07,
-        TypeUnassigned  = 0xFF
-    } major_type_t;
-
-    typedef enum {
-        TypeFalse       = 0x14,
-        TypeTrue        = 0x15,
-        TypeNull        = 0x16,
-        TypeUndefined   = 0x17,
-        TypeUnknown     = 0x18,
-        TypeHalfFloat   = 0x19,
-        TypeSingleFloat = 0x1A,
-        TypeDoubleFloat = 0x1B
-    } cbor_simple_t;
-
     Cbore();
 
     Cbore(uint8_t* cbor, std::size_t maxLength);
@@ -57,108 +34,170 @@ public:
 
     /* Encode methods */
     Cbore& tag(uint32_t tag);
+
+
+
+    /*************************************************************************/
+    /* Array creation                                                        */
+    /*************************************************************************/
+
+    // create array in array
     Cbore& array(std::size_t items);
+
+    // create array in map <integer, array>
+    Cbore& array(int32_t key, std::size_t size);
+
+    // create array in map <string, array>
+    template <std::size_t I>
+    Cbore& array(const char (&key)[I], std::size_t size)
+    {
+        if ((itemSize(I) + I + itemSize(size)) <= (maxLength - currentLength))
+        {
+            writeTypeAndValue(CborBase::TypeString, I - 1);
+            writeBytes((const uint8_t*) key, I - 1);
+            writeTypeAndValue(CborBase::TypeArray, size);
+        }
+
+        return *this;
+    }
+
+    /*************************************************************************/
+    /* Array insertion                                                       */
+    /*************************************************************************/
+
+    // write <integer>
+    Cbore& item(int32_t value);
+
+    // write <simple type>
+    Cbore& item(CborBase::SimpleType_t simpleType);
+
+    // write <string>
+    template <std::size_t I>
+    Cbore& item(const char (&string)[I])
+    {
+        if ((itemSize(I) + I) <= (maxLength - currentLength))
+        {
+            writeTypeAndValue(CborBase::TypeString, I - 1);
+            writeBytes((const uint8_t*) string, I - 1);
+        }
+
+        return *this;
+    }
+
+    /*************************************************************************/
+    /* Map creation                                                          */
+    /*************************************************************************/
+
+    // create map in array
     Cbore& map(std::size_t items);
 
+    // create map in map
+    Cbore& map(int32_t key, std::size_t size);
+
+    // create map in map <string, map>
     template <std::size_t I>
-    Cbore& write(const char (&string)[I])
+    Cbore& map(const char (&key)[I], std::size_t size)
     {
-        writeTypeAndValue(TypeString, I - 1);
-        writeBytes((const uint8_t*) string, I - 1);
-
-        return *this;
-    }
-
-    /* map insertion */
-    template <std::size_t I, std::size_t J>
-    Cbore& item(const char (&key)[I], const char (&value)[J])
-    {
-        if ((itemSize(I) + itemSize(J) + I + J) <= (maxLength - currentLength))
+        if ((itemSize(I) + I + itemSize(size)) <= (maxLength - currentLength))
         {
-            writeTypeAndValue(TypeString, I - 1);
+            writeTypeAndValue(CborBase::TypeString, I - 1);
             writeBytes((const uint8_t*) key, I - 1);
-            writeTypeAndValue(TypeString, J - 1);
-            writeBytes((const uint8_t*) value, J - 1);
+            writeTypeAndValue(CborBase::TypeMap, size);
         }
 
         return *this;
     }
 
-    template <std::size_t I>
-    Cbore& item(const char (&key)[I], int32_t value)
-    {
-        if ((itemSize(I) + itemSize(value) + I) <= (maxLength - currentLength))
-        {
-            writeTypeAndValue(TypeString, I - 1);
-            writeBytes((const uint8_t*) key, I - 1);
+    /*************************************************************************/
+    /* Map insertion                                                         */
+    /*************************************************************************/
 
-            if (value < 0)
-            {
-                writeTypeAndValue(TypeNegative, -1 - value);
-            }
-            else
-            {
-                writeTypeAndValue(TypeUnsigned, value);
-            }
-        }
+    // insert <integer, integer>
+    Cbore& item(int32_t key, int32_t value);
 
-        return *this;
-    }
+    // insert <integer, simple type> (Cbor::TypeNull, TypeFalse, TypeTrue)
+    Cbore& item(int32_t key, CborBase::SimpleType_t value);
 
+    // insert <integer, string>
     template <std::size_t I>
     Cbore& item(int32_t key, const char (&value)[I])
     {
-        if ((itemSize(I) + itemSize(key) + I) <= (maxLength - currentLength))
+        if ((itemSize(key) + itemSize(I) + I) <= (maxLength - currentLength))
         {
             if (key < 0)
             {
-                writeTypeAndValue(TypeNegative, -1 - key);
+                writeTypeAndValue(CborBase::TypeNegative, -1 - key);
             }
             else
             {
-                writeTypeAndValue(TypeUnsigned, key);
+                writeTypeAndValue(CborBase::TypeUnsigned, key);
             }
 
-            writeTypeAndValue(TypeString, I - 1);
+            writeTypeAndValue(CborBase::TypeString, I - 1);
             writeBytes((const uint8_t*) value, I - 1);
         }
 
         return *this;
     }
 
-    Cbore item(int32_t key, int32_t value)
+    // insert <string, integer>
+    template <std::size_t I>
+    Cbore& item(const char (&key)[I], int32_t value)
     {
-        if ((itemSize(key) + itemSize(value)) <= (maxLength - currentLength))
+        if ((itemSize(I) + I + itemSize(value)) <= (maxLength - currentLength))
         {
-            if (key < 0)
-            {
-                writeTypeAndValue(TypeNegative, -1 - key);
-            }
-            else
-            {
-                writeTypeAndValue(TypeUnsigned, key);
-            }
+            writeTypeAndValue(CborBase::TypeString, I - 1);
+            writeBytes((const uint8_t*) key, I - 1);
 
             if (value < 0)
             {
-                writeTypeAndValue(TypeNegative, -1 - value);
+                writeTypeAndValue(CborBase::TypeNegative, -1 - value);
             }
             else
             {
-                writeTypeAndValue(TypeUnsigned, value);
+                writeTypeAndValue(CborBase::TypeUnsigned, value);
             }
         }
 
         return *this;
     }
 
+    // insert <string, simple type>
+    template <std::size_t I>
+    Cbore& item(const char (&key)[I], CborBase::SimpleType_t value)
+    {
+        if ((itemSize(I) + I + 1) <= (maxLength - currentLength))
+        {
+            writeTypeAndValue(CborBase::TypeString, I - 1);
+            writeBytes((const uint8_t*) key, I - 1);
+
+            cbor[currentLength++] = CborBase::TypeSpecial << 5 | value;
+        }
+
+        return *this;
+    }
+
+    // insert <string, string>
+    template <std::size_t I, std::size_t J>
+    Cbore& item(const char (&key)[I], const char (&value)[J])
+    {
+        if ((itemSize(I) + itemSize(J) + I + J) <= (maxLength - currentLength))
+        {
+            writeTypeAndValue(CborBase::TypeString, I - 1);
+            writeBytes((const uint8_t*) key, I - 1);
+            writeTypeAndValue(CborBase::TypeString, J - 1);
+            writeBytes((const uint8_t*) value, J - 1);
+        }
+
+        return *this;
+    }
 
     /* debug */
     void print();
 
 private:
     uint8_t itemSize(int32_t item);
-    uint8_t writeTypeAndValue(major_type_t majorType, uint32_t value);
+    uint8_t writeTypeAndValue(CborBase::MajorType_t majorType, uint32_t value);
     uint32_t writeBytes(const uint8_t* source, uint32_t length);
 
 private:

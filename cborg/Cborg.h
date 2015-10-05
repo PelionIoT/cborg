@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <cstddef>
+#include <string>
 
 #include "cborg/CborgHeader.h"
 
@@ -76,6 +77,7 @@ public:
 
     bool getBytes(const uint8_t** pointer, uint32_t* length) const;
     bool getString(const char** pointer, uint32_t* length) const;
+    bool getString(std::string& str) const;
 
     /* pass through to header */
     uint32_t getTag() const;
