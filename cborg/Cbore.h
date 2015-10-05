@@ -84,6 +84,9 @@ public:
         return *this;
     }
 
+    // write string, length
+    Cbore& item(char* string, std::size_t length);
+
     /*************************************************************************/
     /* Map creation                                                          */
     /*************************************************************************/
@@ -140,6 +143,9 @@ public:
         return *this;
     }
 
+    // insert <integer, string, length>
+    Cbore& item(int32_t key, char* value, std::size_t length);
+
     // insert <string, integer>
     template <std::size_t I>
     Cbore& item(const char (&key)[I], int32_t value)
@@ -185,8 +191,48 @@ public:
         {
             writeTypeAndValue(CborBase::TypeString, I - 1);
             writeBytes((const uint8_t*) key, I - 1);
+
             writeTypeAndValue(CborBase::TypeString, J - 1);
             writeBytes((const uint8_t*) value, J - 1);
+        }
+
+        return *this;
+    }
+
+    // insert <string, string, length>
+    template <std::size_t I>
+    Cbore& item(const char (&key)[I], char* value, std::size_t length)
+    {
+        if ((itemSize(I) + itemSize(length) + I + length) <= (maxLength - currentLength))
+        {
+            writeTypeAndValue(CborBase::TypeString, I - 1);
+            writeBytes((const uint8_t*) key, I - 1);
+
+            writeTypeAndValue(CborBase::TypeString, length);
+            writeBytes((const uint8_t*) value, length);
+        }
+
+        return *this;
+    }
+
+    /*************************************************************************/
+    /* Complex map insertion                                                 */
+    /*************************************************************************/
+
+    Cbore& item(char* key, std::size_t keyLength, int32_t value);
+    Cbore& item(char* key, std::size_t keyLength, CborBase::SimpleType_t value);
+    Cbore& item(char* key, std::size_t keyLength, char* value, std::size_t valueLength);
+
+    template <std::size_t I>
+    Cbore& item(char* key, std::size_t keyLength, const char (&value)[I])
+    {
+        if ((itemSize(keyLength) + keyLength + itemSize(I) + I) <= (maxLength - currentLength))
+        {
+            writeTypeAndValue(CborBase::TypeString, keyLength);
+            writeBytes((const uint8_t*) key, keyLength);
+
+            writeTypeAndValue(CborBase::TypeString, I - 1);
+            writeBytes((const uint8_t*) value, I - 1);
         }
 
         return *this;

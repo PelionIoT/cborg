@@ -18,6 +18,8 @@
 #include "cborg/Cborg.h"
 
 #include <list>
+#include <cstring>
+#include <stdio.h>
 
 #if 0
 #include <stdio.h>
@@ -126,6 +128,18 @@ Cbore& Cbore::item(CborBase::SimpleType_t simpleType)
     return *this;
 }
 
+// write string, length
+Cbore& Cbore::item(char* string, std::size_t length)
+{
+    if ((itemSize(length) + length) <= (maxLength - currentLength))
+    {
+        writeTypeAndValue(CborBase::TypeString, length);
+        writeBytes((const uint8_t*) string, length);
+    }
+
+    return *this;
+}
+
 /*************************************************************************/
 /* Map creation                                                          */
 /*************************************************************************/
@@ -207,6 +221,78 @@ Cbore& Cbore::item(int32_t key, CborBase::SimpleType_t value)
         }
 
         cbor[currentLength++] = CborBase::TypeSpecial << 5 | value;
+    }
+
+    return *this;
+}
+
+// insert <integer, string, length>
+Cbore& Cbore::item(int32_t key, char* value, std::size_t length)
+{
+    if ((itemSize(key) + itemSize(length) + length) <= (maxLength - currentLength))
+    {
+        if (key < 0)
+        {
+            writeTypeAndValue(CborBase::TypeNegative, -1 - key);
+        }
+        else
+        {
+            writeTypeAndValue(CborBase::TypeUnsigned, key);
+        }
+
+        writeTypeAndValue(CborBase::TypeString, length);
+        writeBytes((const uint8_t*) value, length);
+    }
+
+    return *this;
+}
+
+/*************************************************************************/
+/* Complex map insertion                                                 */
+/*************************************************************************/
+
+Cbore& Cbore::item(char* key, std::size_t keyLength, int32_t value)
+{
+    if ((itemSize(keyLength) + keyLength + itemSize(value)) <= (maxLength - currentLength))
+    {
+        writeTypeAndValue(CborBase::TypeString, keyLength);
+        writeBytes((const uint8_t*) key, keyLength);
+
+        if (key < 0)
+        {
+            writeTypeAndValue(CborBase::TypeNegative, -1 - value);
+        }
+        else
+        {
+            writeTypeAndValue(CborBase::TypeUnsigned, value);
+        }
+    }
+
+    return *this;
+}
+
+Cbore& Cbore::item(char* key, std::size_t keyLength, CborBase::SimpleType_t value)
+{
+    if ((itemSize(keyLength) + keyLength + itemSize(value)) <= (maxLength - currentLength))
+    {
+        writeTypeAndValue(CborBase::TypeString, keyLength);
+        writeBytes((const uint8_t*) key, keyLength);
+
+        cbor[currentLength++] = CborBase::TypeSpecial << 5 | value;
+    }
+
+    return *this;
+}
+
+Cbore& Cbore::item(char* key, std::size_t keyLength, char* value, std::size_t valueLength)
+{
+    if ((itemSize(keyLength) + keyLength + itemSize(valueLength) + valueLength) <= (maxLength - currentLength))
+    {
+        writeTypeAndValue(CborBase::TypeString, keyLength);
+        writeBytes((const uint8_t*) key, keyLength);
+
+        writeTypeAndValue(CborBase::TypeString, valueLength);
+        writeBytes((const uint8_t*) value, valueLength);
     }
 
     return *this;
