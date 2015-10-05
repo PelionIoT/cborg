@@ -53,7 +53,9 @@ bool Cborg::getCBOR(const uint8_t** pointer, uint32_t* length)
     {
         return false;
     }
-    else if ((type == CborBase::TypeMap) || (type == CborBase::TypeArray))
+    else if ((type == CborBase::TypeMap) || (type == CborBase::TypeArray)
+        || (((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+                    && (simple == CborBase::TypeIndefinite)))
     {
         // list keeps track of the current level
         std::list<uint32_t> list;
@@ -117,9 +119,16 @@ bool Cborg::getCBOR(const uint8_t** pointer, uint32_t* length)
                     units = head.getValue();
                 }
             }
+            else if (((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+                    && (simple == CborBase::TypeIndefinite))
+            {
+                list.push_back(units);
+                units = 0xFFFFFFFF;
+            }
 
             // increment progress based on cbor object size
-            if ((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+            if (((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+                    && (simple != CborBase::TypeIndefinite))
             {
                 progress += head.getLength() + head.getValue();
             }
@@ -181,7 +190,9 @@ uint32_t Cborg::getCBORLength()
     {
         return 0;
     }
-    else if ((type == CborBase::TypeMap) || (type == CborBase::TypeArray))
+    else if ((type == CborBase::TypeMap) || (type == CborBase::TypeArray)
+        || (((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+                    && (simple == CborBase::TypeIndefinite)))
     {
         // list keeps track of the current level
         std::list<uint32_t> list;
@@ -245,9 +256,16 @@ uint32_t Cborg::getCBORLength()
                     units = head.getValue();
                 }
             }
+            else if (((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+                    && (simple == CborBase::TypeIndefinite))
+            {
+                list.push_back(units);
+                units = 0xFFFFFFFF;
+            }
 
             // increment progress based on cbor object size
-            if ((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+            if (((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+                    && (simple != CborBase::TypeIndefinite))
             {
                 progress += head.getLength() + head.getValue();
             }
@@ -365,6 +383,14 @@ Cborg Cborg::find(int32_t key)
                 units = head.getValue();
             }
         }
+        else if (((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+                && (simple == CborBase::TypeIndefinite))
+        {
+            gotKey = false;
+
+            list.push_back(units);
+            units = 0xFFFFFFFF;
+        }
         else
         {
             // object is not a container type
@@ -414,7 +440,8 @@ Cborg Cborg::find(int32_t key)
         }
 
         // increment progress based on cbor object size
-        if ((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+        if (((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+                && (simple != CborBase::TypeIndefinite))
         {
             progress += head.getLength() + head.getValue();
         }
@@ -523,6 +550,14 @@ Cborg Cborg::find(const char* key, std::size_t keyLength)
                 units = head.getValue();
             }
         }
+        else if (((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+                && (simple == CborBase::TypeIndefinite))
+        {
+            gotKey = false;
+
+            list.push_back(units);
+            units = 0xFFFFFFFF;
+        }
         else
         {
             // object is not a container type
@@ -574,7 +609,8 @@ Cborg Cborg::find(const char* key, std::size_t keyLength)
         }
 
         // increment progress based on cbor object size
-        if ((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+        if (((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+                && (simple != CborBase::TypeIndefinite))
         {
             progress += head.getLength() + head.getValue();
         }
@@ -687,9 +723,16 @@ Cborg Cborg::at(std::size_t index)
                     units = head.getValue();
                 }
             }
+            else if (((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+                    && (simple == CborBase::TypeIndefinite))
+            {
+                list.push_back(units);
+                units = 0xFFFFFFFF;
+            }
 
             // increment progress based on cbor object size
-            if ((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+            if (((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+                    && (simple != CborBase::TypeIndefinite))
             {
                 progress += head.getLength() + head.getValue();
             }
@@ -952,6 +995,20 @@ void Cborg::print()
                 units = head.getValue();
             }
         }
+        else if ((type == CborBase::TypeBytes) && (simple == CborBase::TypeIndefinite))
+        {
+            printf("Bytes:\r\n");
+
+            list.push_back(units);
+            units = 0xFFFFFFFF;
+        }
+        else if ((type == CborBase::TypeString) && (simple == CborBase::TypeIndefinite))
+        {
+            printf("String:\r\n");
+
+            list.push_back(units);
+            units = 0xFFFFFFFF;
+        }
         else
         {
             switch(type)
@@ -1069,7 +1126,8 @@ void Cborg::print()
         }
 
         // increment progress based on cbor object size
-        if ((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+        if (((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+                && (simple != CborBase::TypeIndefinite))
         {
             progress += head.getLength() + head.getValue();
         }
