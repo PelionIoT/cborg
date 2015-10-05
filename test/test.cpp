@@ -596,28 +596,36 @@ void test8()
     Cbore encoder(buffer, sizeof(buffer));
 
     encoder.tag(1234)
-            .array(6)
+            .array()
                 .item("Attention, the Universe!")
                 .item("Hello World!")
-                .map(5)
-                    .pair("key1", "value1")
-                    .array("key2", 3)
-                        .item("one")
-                        .item("two")
-                        .item("three")
-                    .pair(3, "value3")
-                    .map("key4", 4)
-                        .pair("key5", Cbor::TypeNull)
-                        .pair(6, Cbor::TypeFalse)
-                        .array(7, 3)
-                            .item(1)
-                            .item(str, sizeof(str) - 1)
-                            .item(3)
-                        .pair("something", str, sizeof(str) - 1)
-                    .pair(str, sizeof(str) - 1, str, sizeof(str) - 1)
+                .map()
+                    .key("key1").value("value1")
+                    .key("key2")
+                        .array()
+                            .item("one")
+                            .item("two")
+                            .item("three")
+                        .end()
+                    .key(3).value("value3")
+                    .key("key4")
+                        .map(4)
+                            .key("key5").value(Cbor::TypeNull)
+                            .key(6).value(Cbor::TypeFalse)
+                            .key(7)
+                                .array(3)
+                                    .item(1)
+                                    .item(str, sizeof(str) - 1)
+                                    .item(3)
+//                                .end()
+                            .key("something").value(str, sizeof(str) - 1)
+//                        .end()
+                    .key(str, sizeof(str) - 1).value(str, sizeof(str) - 1)
+                .end()
                 .item(-10)
                 .item(10)
-                .item(Cbor::TypeTrue);
+                .item(Cbor::TypeTrue)
+            .end();
 
     encoder.print();
 
@@ -646,9 +654,9 @@ void app_start(int, char *[])
     test3();
     test4();
 
-//    test5();
-//    test6();
-//    test7();
+    test5();
+    test6();
+    test7();
 
     test8();
 }

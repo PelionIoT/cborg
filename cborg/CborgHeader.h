@@ -74,7 +74,7 @@ public:
             }
             else if (minorType == CborBase::TypeIndefinite)
             {
-                value = 0;
+                value = 31;
                 length = 1;
             }
 
@@ -117,8 +117,8 @@ public:
                 }
                 else if (minorType == CborBase::TypeIndefinite)
                 {
-                    value = 0;
-                    length = 1;
+                    value = 31;
+                    length += 1;
                 }
             }
         }
