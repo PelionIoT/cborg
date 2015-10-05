@@ -51,7 +51,8 @@ public:
         TypeUnknown     = 0x18,
         TypeHalfFloat   = 0x19,
         TypeSingleFloat = 0x1A,
-        TypeDoubleFloat = 0x1B
+        TypeDoubleFloat = 0x1B,
+        TypeIndefinite  = 0x1F
     } SimpleType_t;
 
     CborBase(MajorType_t _majorType = TypeSpecial, SimpleType_t _minorType = TypeNull)

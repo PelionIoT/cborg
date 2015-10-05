@@ -17,6 +17,8 @@
 #ifndef __CBORG_HEADER_H__
 #define __CBORG_HEADER_H__
 
+#include "cborg/CborBase.h"
+
 #include <stdint.h>
 
 
@@ -24,20 +26,14 @@
 class CborgHeader
 {
 public:
-    typedef enum {
-        TypeTag         = 0x06,
-        TypeSpecial     = 0x07,
-        TypeNull        = 0x16
-    } type_t;
-
     CborgHeader() {}
 
     void decode(const uint8_t* head)
     {
         // reset variables
         tag = 0xFF;
-        majorType = TypeSpecial;
-        minorType = TypeNull;
+        majorType = CborBase::TypeSpecial;
+        minorType = CborBase::TypeNull;
         length = 0;
         value = 0;
 
@@ -61,13 +57,13 @@ public:
 
                 length = 2;
             }
-            else if(minorType == 25) // 2 bytes
+            else if (minorType == 25) // 2 bytes
             {
                 value = ((uint16_t) head[1] << 8) | head[2];
 
                 length = 3;
             }
-            else if(minorType == 26) // 4 bytes
+            else if (minorType == 26) // 4 bytes
             {
                 value = ((uint32_t) head[1] << 24)
                       | ((uint32_t) head[2] << 16)
@@ -76,9 +72,14 @@ public:
 
                 length = 5;
             }
+            else if (minorType == CborBase::TypeIndefinite)
+            {
+                value = 0;
+                length = 1;
+            }
 
             // the first type was a semantic tag, read the next header
-            if (majorType == TypeTag)
+            if (majorType == CborBase::TypeTag)
             {
                 // store previous value as the tag
                 tag = value;
@@ -100,19 +101,24 @@ public:
 
                     length += 2;
                 }
-                else if(minorType == 25)
+                else if (minorType == 25)
                 {
                     value = ((uint16_t) head[length + 1] << 8) | head[length + 2];
 
                     length += 3;
                 }
-                else if(minorType == 26)
+                else if (minorType == 26)
                 {
                     value = ((uint32_t) head[length + 1] << 24)
                           | ((uint32_t) head[length + 2] << 16)
                           | ((uint32_t) head[length + 3] << 8)
                           |             head[length + 4];
                     length += 5;
+                }
+                else if (minorType == CborBase::TypeIndefinite)
+                {
+                    value = 0;
+                    length = 1;
                 }
             }
         }

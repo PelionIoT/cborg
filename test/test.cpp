@@ -170,7 +170,7 @@ void test4()
 
         uint32_t integer = 0;
 
-        if (object.getType() == Cborg::TypeUnsigned)
+        if (object.getType() == Cbor::TypeUnsigned)
         {
             bool result = object.getUnsigned(&integer);
 
@@ -188,7 +188,7 @@ void test4()
         const char* name = NULL;
         uint32_t length;
 
-        if (object.getType() == Cborg::TypeString)
+        if (object.getType() == Cbor::TypeString)
         {
             bool restult = object.getString(&name, &length);
 
@@ -208,7 +208,7 @@ void test4()
         const char* name = NULL;
         uint32_t length;
 
-        if (object.getType() == Cborg::TypeString)
+        if (object.getType() == Cbor::TypeString)
         {
             std::string objectString;
             bool restult = object.getString(objectString);
@@ -584,7 +584,6 @@ void test7()
         Cborg borg(buffer, sizeof(buffer));
         borg.print();
         printf("\r\n");
-
     }
 }
 
@@ -592,26 +591,30 @@ void test8()
 {
     uint8_t buffer[200];
 
+    char str[] = "hello";
+
     Cbore encoder(buffer, sizeof(buffer));
 
     encoder.tag(1234)
             .array(6)
                 .item("Attention, the Universe!")
                 .item("Hello World!")
-                .map(4)
-                    .item("key1", "value1")
+                .map(5)
+                    .pair("key1", "value1")
                     .array("key2", 3)
                         .item("one")
                         .item("two")
                         .item("three")
-                    .item(3, "value3")
-                    .map("key4", 3)
-                        .item("key5", Cbor::TypeNull)
-                        .item(6, Cbor::TypeFalse)
+                    .pair(3, "value3")
+                    .map("key4", 4)
+                        .pair("key5", Cbor::TypeNull)
+                        .pair(6, Cbor::TypeFalse)
                         .array(7, 3)
                             .item(1)
-                            .item(2)
+                            .item(str, sizeof(str) - 1)
                             .item(3)
+                        .pair("something", str, sizeof(str) - 1)
+                    .pair(str, sizeof(str) - 1, str, sizeof(str) - 1)
                 .item(-10)
                 .item(10)
                 .item(Cbor::TypeTrue);
@@ -627,7 +630,9 @@ void test8()
     // cross check
     printf("Test CBOR decoding and print out\r\n");
     Cborg decoder(buffer, sizeof(buffer));
-    decoder.print();
+
+    decoder.at(2).find("key4").find(7).print();
+
     printf("\r\n");
 }
 
@@ -636,10 +641,11 @@ void test8()
 /*****************************************************************************/
 void app_start(int, char *[])
 {
-//    test1();
-//    test2();
-//    test3();
+    test1();
+    test2();
+    test3();
     test4();
+
 //    test5();
 //    test6();
 //    test7();

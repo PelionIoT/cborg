@@ -129,7 +129,7 @@ Cbore& Cbore::item(CborBase::SimpleType_t simpleType)
 }
 
 // write string, length
-Cbore& Cbore::item(char* string, std::size_t length)
+Cbore& Cbore::item(const char* string, std::size_t length)
 {
     if ((itemSize(length) + length) <= (maxLength - currentLength))
     {
@@ -180,7 +180,7 @@ Cbore& Cbore::map(int32_t key, std::size_t size)
 /*************************************************************************/
 
 // insert <integer, integer>
-Cbore& Cbore::item(int32_t key, int32_t value)
+Cbore& Cbore::pair(int32_t key, int32_t value)
 {
     if ((itemSize(key) + itemSize(value)) <= (maxLength - currentLength))
     {
@@ -207,7 +207,7 @@ Cbore& Cbore::item(int32_t key, int32_t value)
 }
 
 // insert <integer, simple type>
-Cbore& Cbore::item(int32_t key, CborBase::SimpleType_t value)
+Cbore& Cbore::pair(int32_t key, CborBase::SimpleType_t value)
 {
     if (itemSize(key) + 1 <= (maxLength - currentLength))
     {
@@ -227,7 +227,7 @@ Cbore& Cbore::item(int32_t key, CborBase::SimpleType_t value)
 }
 
 // insert <integer, string, length>
-Cbore& Cbore::item(int32_t key, char* value, std::size_t length)
+Cbore& Cbore::pair(int32_t key, const char* value, std::size_t length)
 {
     if ((itemSize(key) + itemSize(length) + length) <= (maxLength - currentLength))
     {
@@ -251,7 +251,7 @@ Cbore& Cbore::item(int32_t key, char* value, std::size_t length)
 /* Complex map insertion                                                 */
 /*************************************************************************/
 
-Cbore& Cbore::item(char* key, std::size_t keyLength, int32_t value)
+Cbore& Cbore::pair(const char* key, std::size_t keyLength, int32_t value)
 {
     if ((itemSize(keyLength) + keyLength + itemSize(value)) <= (maxLength - currentLength))
     {
@@ -271,7 +271,7 @@ Cbore& Cbore::item(char* key, std::size_t keyLength, int32_t value)
     return *this;
 }
 
-Cbore& Cbore::item(char* key, std::size_t keyLength, CborBase::SimpleType_t value)
+Cbore& Cbore::pair(const char* key, std::size_t keyLength, CborBase::SimpleType_t value)
 {
     if ((itemSize(keyLength) + keyLength + itemSize(value)) <= (maxLength - currentLength))
     {
@@ -284,7 +284,7 @@ Cbore& Cbore::item(char* key, std::size_t keyLength, CborBase::SimpleType_t valu
     return *this;
 }
 
-Cbore& Cbore::item(char* key, std::size_t keyLength, char* value, std::size_t valueLength)
+Cbore& Cbore::pair(const char* key, std::size_t keyLength, const char* value, std::size_t valueLength)
 {
     if ((itemSize(keyLength) + keyLength + itemSize(valueLength) + valueLength) <= (maxLength - currentLength))
     {

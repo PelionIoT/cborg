@@ -17,6 +17,7 @@
 #include "cborg/Cborg.h"
 
 #include <list>
+#include <stdio.h>
 
 #if 0
 #include <stdio.h>
@@ -46,11 +47,11 @@ bool Cborg::getCBOR(const uint8_t** pointer, uint32_t* length)
 
     *pointer = cbor;
 
-    if (type == Cborg::TypeUnassigned)
+    if (type == CborBase::TypeUnassigned)
     {
         return false;
     }
-    else if ((type == Cborg::TypeMap) || (type == Cborg::TypeArray))
+    else if ((type == CborBase::TypeMap) || (type == CborBase::TypeArray))
     {
         // list keeps track of the current level
         std::list<uint32_t> list;
@@ -60,7 +61,7 @@ bool Cborg::getCBOR(const uint8_t** pointer, uint32_t* length)
         uint32_t units = head.getValue();
 
         // maps contain key-value pairs, double the number of units in container
-        if (type == Cborg::TypeMap)
+        if (type == CborBase::TypeMap)
         {
             units *= 2;
         }
@@ -77,7 +78,7 @@ bool Cborg::getCBOR(const uint8_t** pointer, uint32_t* length)
 
             // if object is a container type (map or array), push remaining units onto the stack (list)
             // and set units to the number of elements in the new container.
-            if (head.getMajorType() == Cborg::TypeMap)
+            if (head.getMajorType() == CborBase::TypeMap)
             {
                 if (head.getValue() > 0)
                 {
@@ -85,7 +86,7 @@ bool Cborg::getCBOR(const uint8_t** pointer, uint32_t* length)
                     units = 2 * head.getValue();
                 }
             }
-            else if (head.getMajorType() == Cborg::TypeArray)
+            else if (head.getMajorType() == CborBase::TypeArray)
             {
                 if (head.getValue() > 0)
                 {
@@ -95,7 +96,7 @@ bool Cborg::getCBOR(const uint8_t** pointer, uint32_t* length)
             }
 
             // increment progress based on cbor object size
-            if ((head.getMajorType() == Cborg::TypeBytes) || (head.getMajorType() == Cborg::TypeString))
+            if ((head.getMajorType() == CborBase::TypeBytes) || (head.getMajorType() == CborBase::TypeString))
             {
                 progress += head.getLength() + head.getValue();
             }
@@ -127,7 +128,7 @@ bool Cborg::getCBOR(const uint8_t** pointer, uint32_t* length)
 
         return false;
     }
-    else if ((type == Cborg::TypeBytes) || (type == Cborg::TypeString))
+    else if ((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
     {
         // return header and length
         *length = head.getLength() + head.getValue();
@@ -148,11 +149,11 @@ uint32_t Cborg::getCBORLength()
     head.decode(cbor);
     uint8_t type = head.getMajorType();
 
-    if (type == Cborg::TypeUnassigned)
+    if (type == CborBase::TypeUnassigned)
     {
         return 0;
     }
-    else if ((type == Cborg::TypeMap) || (type == Cborg::TypeArray))
+    else if ((type == CborBase::TypeMap) || (type == CborBase::TypeArray))
     {
         // list keeps track of the current level
         std::list<uint32_t> list;
@@ -162,7 +163,7 @@ uint32_t Cborg::getCBORLength()
         uint32_t units = head.getValue();
 
         // maps contain key-value pairs, double the number of units in container
-        if (type == Cborg::TypeMap)
+        if (type == CborBase::TypeMap)
         {
             units *= 2;
         }
@@ -179,7 +180,7 @@ uint32_t Cborg::getCBORLength()
 
             // if object is a container type (map or array), push remaining units onto the stack (list)
             // and set units to the number of elements in the new container.
-            if (head.getMajorType() == Cborg::TypeMap)
+            if (head.getMajorType() == CborBase::TypeMap)
             {
                 if (head.getValue() > 0)
                 {
@@ -187,7 +188,7 @@ uint32_t Cborg::getCBORLength()
                     units = 2 * head.getValue();
                 }
             }
-            else if (head.getMajorType() == Cborg::TypeArray)
+            else if (head.getMajorType() == CborBase::TypeArray)
             {
                 if (head.getValue() > 0)
                 {
@@ -197,7 +198,7 @@ uint32_t Cborg::getCBORLength()
             }
 
             // increment progress based on cbor object size
-            if ((head.getMajorType() == Cborg::TypeBytes) || (head.getMajorType() == Cborg::TypeString))
+            if ((head.getMajorType() == CborBase::TypeBytes) || (head.getMajorType() == CborBase::TypeString))
             {
                 progress += head.getLength() + head.getValue();
             }
@@ -227,7 +228,7 @@ uint32_t Cborg::getCBORLength()
 
         return progress;
     }
-    else if ((type == Cborg::TypeBytes) || (type == Cborg::TypeString))
+    else if ((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
     {
         // return header and length
         return head.getLength() + head.getValue();
@@ -239,16 +240,14 @@ uint32_t Cborg::getCBORLength()
     }
 }
 
-
-
-Cborg Cborg::find(const char* key, std::size_t keyLength)
+Cborg Cborg::find(int32_t key)
 {
     CborgHeader head;
     head.decode(cbor);
     uint32_t units = 2 * head.getValue();
 
-    // only continue if type is Cbor Map, key is not NULL, and the map is not empty
-    if ((head.getMajorType() != Cborg::TypeMap) || (key == NULL) || (units == 0))
+    // only continue if type is Cbor Map and the map is not empty
+    if ((head.getMajorType() != CborBase::TypeMap) || (units == 0))
     {
         return Cborg(NULL, 0);
     }
@@ -256,7 +255,6 @@ Cborg Cborg::find(const char* key, std::size_t keyLength)
     // got map, look for key
     std::list<uint32_t> list;
     bool gotKey = false;
-    Cborg cborKey;
 
     // skip map header
     std::size_t progress = head.getLength();
@@ -266,23 +264,25 @@ Cborg Cborg::find(const char* key, std::size_t keyLength)
     // the current map is finished
     while (progress < maxLength)
     {
-        units--;
-
         // decode header for cbor object currently pointed to
         head.decode(&cbor[progress]);
 
         // if object is a container type (map or array), push remaining units onto the stack (list)
         // and set units to the number of elements in the new container.
-        if (head.getMajorType() == Cborg::TypeMap)
+        if (head.getMajorType() == CborBase::TypeMap)
         {
+            gotKey = false;
+
             if (head.getValue() > 0)
             {
                 list.push_back(units);
                 units = 2 * head.getValue();
             }
         }
-        else if (head.getMajorType() == Cborg::TypeArray)
+        else if (head.getMajorType() == CborBase::TypeArray)
         {
+            gotKey = false;
+
             if (head.getValue() > 0)
             {
                 list.push_back(units);
@@ -303,22 +303,162 @@ Cborg Cborg::find(const char* key, std::size_t keyLength)
                 }
                 else
                 {
-                    // assume keys are cbor strings.
+                    // assume keys are cbor integers.
+                    uint8_t type = head.getMajorType();
+                    bool found = false;
+
+                    if (type == CborBase::TypeUnsigned)
+                    {
+                        if (head.getValue() == key)
+                        {
+                            found = true;
+                        }
+                    }
+                    else if (type == CborBase::TypeNegative)
+                    {
+                        if ((-1 - head.getValue()) == key)
+                        {
+                            found = true;
+                        }
+                    }
+
+                    if (found)
+                    {
+                        // update progress to point to next object
+                        progress += head.getLength();
+
+                        // return new Cborg object based on object pointer and max length
+                        return Cborg(&cbor[progress], maxLength - progress);
+                    }
+
+                    // this object is a key, but the key didn't match
+                    // signal that the next object is a value
+                    gotKey = true;
+                }
+            }
+        }
+
+        units--;
+
+        // finished processing all elements in the current container object
+        // step back up one level by popping remaining elements from the stack (list)
+        // do it in a while loop since we might have to step back up multiple times
+        while (units == 0)
+        {
+            if (list.size() > 0)
+            {
+                // pop from stack
+                units = list.back();
+                list.pop_back();
+            }
+            else
+            {
+                // stack is empty, means we have reached the end of the current container
+                // return a Cbor null object
+                return Cborg(NULL, 0);
+            }
+        }
+
+        // increment progress based on cbor object size
+        if ((head.getMajorType() == CborBase::TypeBytes) || (head.getMajorType() == CborBase::TypeString))
+        {
+            progress += head.getLength() + head.getValue();
+        }
+        else
+        {
+            progress += head.getLength();
+        }
+    }
+
+    // key not found, retun null object
+    return Cborg(NULL, 0);
+}
+
+Cborg Cborg::find(const char* key, std::size_t keyLength)
+{
+    CborgHeader head;
+    head.decode(cbor);
+    uint32_t units = 2 * head.getValue();
+
+    // only continue if type is Cbor Map, key is not NULL, and the map is not empty
+    if ((head.getMajorType() != CborBase::TypeMap) || (key == NULL) || (units == 0))
+    {
+        return Cborg(NULL, 0);
+    }
+
+    // got map, look for key
+    std::list<uint32_t> list;
+    bool gotKey = false;
+
+    // skip map header
+    std::size_t progress = head.getLength();
+
+    // iterate through cbor encoded buffer
+    // stop when maximum length is reached or
+    // the current map is finished
+    while (progress < maxLength)
+    {
+        units--;
+
+        // decode header for cbor object currently pointed to
+        head.decode(&cbor[progress]);
+
+        // if object is a container type (map or array), push remaining units onto the stack (list)
+        // and set units to the number of elements in the new container.
+        if (head.getMajorType() == CborBase::TypeMap)
+        {
+            gotKey = false;
+
+            if (head.getValue() > 0)
+            {
+                list.push_back(units);
+                units = 2 * head.getValue();
+            }
+        }
+        else if (head.getMajorType() == CborBase::TypeArray)
+        {
+            gotKey = false;
+
+            if (head.getValue() > 0)
+            {
+                list.push_back(units);
+                units = head.getValue();
+            }
+        }
+        else
+        {
+            // object is not a container type
+            // if object is on the same level as the top level map then process content
+            // otherwise igonre and move on
+            if (list.size() == 0)
+            {
+                // if previous object was a key, this is a value. Skip it.
+                if (gotKey)
+                {
+                    gotKey = false;
+                }
+                else
+                {
                     // if object is a string and the length matches the key length
                     // do a byte-by-byte comparison
-                    if (head.getMajorType() == Cborg::TypeString)
+                    if (head.getMajorType() == CborBase::TypeString)
                     {
                         if (head.getValue() == keyLength)
                         {
+                            bool found = true;
+
                             for (std::size_t idx = 0; idx < keyLength; idx++)
                             {
                                 // break out of loop if string is different from the key
                                 if (key[idx] != cbor[progress + head.getLength() + idx])
                                 {
+                                    found = false;
                                     break;
                                 }
+                            }
 
-                                // didn't break out, mean we found key
+                            if (found)
+                            {
                                 // update progress to point to next object
                                 progress += head.getLength() + head.getValue();
 
@@ -326,11 +466,11 @@ Cborg Cborg::find(const char* key, std::size_t keyLength)
                                 return Cborg(&cbor[progress], maxLength - progress);
                             }
                         }
-
-                        // this object is a key, but the key didn't match
-                        // signal that the next object is a value
-                        gotKey = true;
                     }
+
+                    // this object is a key, but the key didn't match
+                    // signal that the next object is a value
+                    gotKey = true;
                 }
             }
         }
@@ -355,7 +495,7 @@ Cborg Cborg::find(const char* key, std::size_t keyLength)
         }
 
         // increment progress based on cbor object size
-        if ((head.getMajorType() == Cborg::TypeBytes) || (head.getMajorType() == Cborg::TypeString))
+        if ((head.getMajorType() == CborBase::TypeBytes) || (head.getMajorType() == CborBase::TypeString))
         {
             progress += head.getLength() + head.getValue();
         }
@@ -378,7 +518,7 @@ Cborg Cborg::at(std::size_t index)
     int32_t units = head.getValue();
 
     // only continue if container is Cbor Map, not empty, and index is within bounds
-    if ((head.getMajorType() != Cborg::TypeArray) || (units == 0) || (index >= units))
+    if ((head.getMajorType() != CborBase::TypeArray) || (units == 0) || (index >= units))
     {
         return Cborg(NULL, 0);
     }
@@ -404,44 +544,28 @@ Cborg Cborg::at(std::size_t index)
         {
             units--;
 
+            Cborg decoder(&cbor[progress], maxLength - progress);
+
             // decode header for cbor object currently pointed to
             head.decode(&cbor[progress]);
 
             // if object is a container type (map or array), push remaining units onto the stack (list)
             // and set units to the number of elements in the new container.
-            if (head.getMajorType() == Cborg::TypeMap)
+            if (head.getMajorType() == CborBase::TypeMap)
             {
-                DEBUG_PRINTF("%lu: %d ", list.size(), units);
-
                 if (head.getValue() > 0)
                 {
                     list.push_back(units);
                     units = 2 * head.getValue();
                 }
-
-                DEBUG_PRINTF("map: %d\r\n", units);
             }
-            else if (head.getMajorType() == Cborg::TypeArray)
+            else if (head.getMajorType() == CborBase::TypeArray)
             {
-                DEBUG_PRINTF("%lu: %d ", list.size(), units);
-
                 if (head.getValue() > 0)
                 {
                     list.push_back(units);
                     units = head.getValue();
                 }
-
-                DEBUG_PRINTF("array: %d\r\n", units);
-            }
-            else
-            {
-                DEBUG_PRINTF("%lu: %d %d %d %u %d\r\n", list.size(), units, head.getTag(), head.getMajorType(), head.getLength(), head.getValue());
-            }
-
-            // if element is on the top level, increment index counter
-            if (list.size() == 0)
-            {
-                currentIndex++;
             }
 
             // finished processing all elements in the current container object
@@ -449,8 +573,6 @@ Cborg Cborg::at(std::size_t index)
             // do it in a while loop since we might have to step back up multiple times
             while (units == 0)
             {
-                DEBUG_PRINTF("%lu: done\r\n", list.size());
-
                 if (list.size() > 0)
                 {
                     // pop from stack
@@ -465,8 +587,14 @@ Cborg Cborg::at(std::size_t index)
                 }
             }
 
+            // if element is on the top level, increment index counter
+            if (list.size() == 0)
+            {
+                currentIndex++;
+            }
+
             // increment progress based on cbor object size
-            if ((head.getMajorType() == Cborg::TypeBytes) || (head.getMajorType() == Cborg::TypeString))
+            if ((head.getMajorType() == CborBase::TypeBytes) || (head.getMajorType() == CborBase::TypeString))
             {
                 progress += head.getLength() + head.getValue();
             }
@@ -486,7 +614,7 @@ uint32_t Cborg::getSize() const
     CborgHeader head;
     head.decode(cbor);
 
-    if ((head.getMajorType() == Cborg::TypeMap) || (head.getMajorType() == Cborg::TypeArray))
+    if ((head.getMajorType() == CborBase::TypeMap) || (head.getMajorType() == CborBase::TypeArray))
     {
         return head.getValue();
     }
@@ -502,7 +630,7 @@ bool Cborg::getUnsigned(uint32_t* integer) const
     CborgHeader head;
     head.decode(cbor);
 
-    if (head.getMajorType() == Cborg::TypeUnsigned)
+    if (head.getMajorType() == CborBase::TypeUnsigned)
     {
         *integer = head.getValue();
 
@@ -519,7 +647,7 @@ bool Cborg::getNegative(int32_t* integer) const
     CborgHeader head;
     head.decode(cbor);
 
-    if (head.getMajorType() == Cborg::TypeNegative)
+    if (head.getMajorType() == CborBase::TypeNegative)
     {
         *integer = -1 - head.getValue();
 
@@ -536,7 +664,7 @@ bool Cborg::getBytes(const uint8_t** pointer, uint32_t* length) const
     CborgHeader head;
     head.decode(cbor);
 
-    if (head.getMajorType() == Cborg::TypeBytes)
+    if (head.getMajorType() == CborBase::TypeBytes)
     {
         *pointer = &cbor[head.getLength()];
         *length = head.getValue();
@@ -554,7 +682,7 @@ bool Cborg::getString(const char** pointer, uint32_t* length) const
     CborgHeader head;
     head.decode(cbor);
 
-    if (head.getMajorType() == Cborg::TypeString)
+    if (head.getMajorType() == CborBase::TypeString)
     {
         *pointer = (const char*) &cbor[head.getLength()];
         *length = head.getValue();
@@ -572,7 +700,7 @@ bool Cborg::getString(std::string& str) const
     CborgHeader head;
     head.decode(cbor);
 
-    if (head.getMajorType() == Cborg::TypeString)
+    if (head.getMajorType() == CborBase::TypeString)
     {
         str.assign((const char*) &cbor[head.getLength()], head.getValue());
 
@@ -638,7 +766,7 @@ void Cborg::print()
         /* semantic tag */
         uint32_t tag = object.getTag();
 
-        if (tag != Cborg::TypeUnassigned)
+        if (tag != CborBase::TypeUnassigned)
         {
             printf("[%u] ", tag);
         }
@@ -646,7 +774,7 @@ void Cborg::print()
         /* container object */
         uint8_t type = object.getType();
 
-        if (type == Cborg::TypeMap)
+        if (type == CborBase::TypeMap)
         {
             DEBUG_PRINTF("%u: %d ", list.size(), units);
             printf("Map: %u\r\n", object.getSize());
@@ -657,7 +785,7 @@ void Cborg::print()
                 units = 2 * object.getSize();
             }
         }
-        else if (type == Cborg::TypeArray)
+        else if (type == CborBase::TypeArray)
         {
             DEBUG_PRINTF("%u: %d ", list.size(), units);
             printf("Array: %u\r\n", object.getSize());
@@ -672,7 +800,7 @@ void Cborg::print()
         {
             switch(type)
             {
-                case Cborg::TypeUnsigned:
+                case CborBase::TypeUnsigned:
                     {
                         uint32_t integer = 0;
                         bool result = object.getUnsigned(&integer);
@@ -688,7 +816,7 @@ void Cborg::print()
                     }
                     break;
 
-                case Cborg::TypeNegative:
+                case CborBase::TypeNegative:
                     {
                         int32_t integer = 0;
                         bool result = object.getNegative(&integer);
@@ -704,7 +832,7 @@ void Cborg::print()
                     }
                     break;
 
-                case Cborg::TypeBytes:
+                case CborBase::TypeBytes:
                     {
                         const uint8_t* pointer;
                         uint32_t length;
@@ -722,7 +850,7 @@ void Cborg::print()
                     }
                     break;
 
-                case Cborg::TypeString:
+                case CborBase::TypeString:
                     {
                         const char* pointer;
                         uint32_t length;
@@ -740,35 +868,35 @@ void Cborg::print()
                     }
                     break;
 
-                case Cborg::TypeSpecial:
+                case CborBase::TypeSpecial:
                     {
                         uint8_t simple = object.getMinorType();
 
-                        if (simple == Cborg::TypeTrue)
+                        if (simple == CborBase::TypeTrue)
                         {
                             printf("true\r\n");
                         }
-                        else if (simple == Cborg::TypeFalse)
+                        else if (simple == CborBase::TypeFalse)
                         {
                             printf("false\r\n");
                         }
-                        else if (simple == Cborg::TypeNull)
+                        else if (simple == CborBase::TypeNull)
                         {
                             printf("null\r\n");
                         }
-                        else if (simple == Cborg::TypeUndefined)
+                        else if (simple == CborBase::TypeUndefined)
                         {
                             printf("undefined\r\n");
                         }
-                        else if (simple == Cborg::TypeHalfFloat)
+                        else if (simple == CborBase::TypeHalfFloat)
                         {
                             printf("half float\r\n");
                         }
-                        else if (simple == Cborg::TypeSingleFloat)
+                        else if (simple == CborBase::TypeSingleFloat)
                         {
                             printf("single float\r\n");
                         }
-                        else if (simple == Cborg::TypeDoubleFloat)
+                        else if (simple == CborBase::TypeDoubleFloat)
                         {
                             printf("doubel float\r\n");
                         }
@@ -799,7 +927,7 @@ void Cborg::print()
         // increment progress based on cbor object size
         head.decode(&cbor[progress]);
 
-        if ((head.getMajorType() == Cborg::TypeBytes) || (head.getMajorType() == Cborg::TypeString))
+        if ((head.getMajorType() == CborBase::TypeBytes) || (head.getMajorType() == CborBase::TypeString))
         {
             progress += head.getLength() + head.getValue();
         }

@@ -85,7 +85,7 @@ public:
     }
 
     // write string, length
-    Cbore& item(char* string, std::size_t length);
+    Cbore& item(const char* string, std::size_t length);
 
     /*************************************************************************/
     /* Map creation                                                          */
@@ -116,14 +116,14 @@ public:
     /*************************************************************************/
 
     // insert <integer, integer>
-    Cbore& item(int32_t key, int32_t value);
+    Cbore& pair(int32_t key, int32_t value);
 
     // insert <integer, simple type> (Cbor::TypeNull, TypeFalse, TypeTrue)
-    Cbore& item(int32_t key, CborBase::SimpleType_t value);
+    Cbore& pair(int32_t key, CborBase::SimpleType_t value);
 
     // insert <integer, string>
     template <std::size_t I>
-    Cbore& item(int32_t key, const char (&value)[I])
+    Cbore& pair(int32_t key, const char (&value)[I])
     {
         if ((itemSize(key) + itemSize(I) + I) <= (maxLength - currentLength))
         {
@@ -144,11 +144,11 @@ public:
     }
 
     // insert <integer, string, length>
-    Cbore& item(int32_t key, char* value, std::size_t length);
+    Cbore& pair(int32_t key, const char* value, std::size_t length);
 
     // insert <string, integer>
     template <std::size_t I>
-    Cbore& item(const char (&key)[I], int32_t value)
+    Cbore& pair(const char (&key)[I], int32_t value)
     {
         if ((itemSize(I) + I + itemSize(value)) <= (maxLength - currentLength))
         {
@@ -170,7 +170,7 @@ public:
 
     // insert <string, simple type>
     template <std::size_t I>
-    Cbore& item(const char (&key)[I], CborBase::SimpleType_t value)
+    Cbore& pair(const char (&key)[I], CborBase::SimpleType_t value)
     {
         if ((itemSize(I) + I + 1) <= (maxLength - currentLength))
         {
@@ -185,7 +185,7 @@ public:
 
     // insert <string, string>
     template <std::size_t I, std::size_t J>
-    Cbore& item(const char (&key)[I], const char (&value)[J])
+    Cbore& pair(const char (&key)[I], const char (&value)[J])
     {
         if ((itemSize(I) + itemSize(J) + I + J) <= (maxLength - currentLength))
         {
@@ -201,7 +201,7 @@ public:
 
     // insert <string, string, length>
     template <std::size_t I>
-    Cbore& item(const char (&key)[I], char* value, std::size_t length)
+    Cbore& pair(const char (&key)[I], const char* value, std::size_t length)
     {
         if ((itemSize(I) + itemSize(length) + I + length) <= (maxLength - currentLength))
         {
@@ -219,12 +219,12 @@ public:
     /* Complex map insertion                                                 */
     /*************************************************************************/
 
-    Cbore& item(char* key, std::size_t keyLength, int32_t value);
-    Cbore& item(char* key, std::size_t keyLength, CborBase::SimpleType_t value);
-    Cbore& item(char* key, std::size_t keyLength, char* value, std::size_t valueLength);
+    Cbore& pair(const char* key, std::size_t keyLength, int32_t value);
+    Cbore& pair(const char* key, std::size_t keyLength, CborBase::SimpleType_t value);
+    Cbore& pair(const char* key, std::size_t keyLength, const char* value, std::size_t valueLength);
 
     template <std::size_t I>
-    Cbore& item(char* key, std::size_t keyLength, const char (&value)[I])
+    Cbore& pair(const char* key, std::size_t keyLength, const char (&value)[I])
     {
         if ((itemSize(keyLength) + keyLength + itemSize(I) + I) <= (maxLength - currentLength))
         {

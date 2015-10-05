@@ -22,36 +22,12 @@
 #include <string>
 
 #include "cborg/CborgHeader.h"
-
+#include "cborg/CborBase.h"
 
 class Cborg
 {
 public:
-    typedef enum {
-        TypeUnsigned    = 0x00,
-        TypeNegative    = 0x01,
-        TypeBytes       = 0x02,
-        TypeString      = 0x03,
-        TypeArray       = 0x04,
-        TypeMap         = 0x05,
-        TypeTag         = 0x06,
-        TypeSpecial     = 0x07,
-        TypeUnassigned  = 0xFF
-    } major_type_t;
-
-    typedef enum {
-        TypeFalse       = 0x14,
-        TypeTrue        = 0x15,
-        TypeNull        = 0x16,
-        TypeUndefined   = 0x17,
-        TypeUnknown     = 0x18,
-        TypeHalfFloat   = 0x19,
-        TypeSingleFloat = 0x1A,
-        TypeDoubleFloat = 0x1B
-    } cbor_simple_t;
-
     Cborg();
-
     Cborg(const uint8_t* cbor, std::size_t maxLength);
 
     /* Decode methods */
@@ -65,6 +41,7 @@ public:
         return find(key, I - 1);
     }
 
+    Cborg find(int32_t key);
     Cborg find(const char* key, std::size_t keyLength);
 
     Cborg at(std::size_t index);
