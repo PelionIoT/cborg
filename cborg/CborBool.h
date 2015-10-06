@@ -51,7 +51,7 @@ public:
         // write tag if set
         if (tag != TypeUnassigned)
         {
-            printf("[%u] ", tag);
+            printf("[%lu] ", tag);
         }
 
         if (minorType == TypeTrue)

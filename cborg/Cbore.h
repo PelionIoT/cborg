@@ -72,6 +72,9 @@ public:
         return *this;
     }
 
+    // write bytes, length
+    Cbore& item(const uint8_t* bytes, std::size_t length);
+
     // write string, length
     Cbore& item(const char* string, std::size_t length);
 
@@ -115,6 +118,9 @@ public:
     // insert value as integer
     Cbore& value(int32_t unit);
 
+    // insert value as simple type
+    Cbore& value(CborBase::SimpleType_t value);
+
     // insert value as const char array
     template <std::size_t I>
     Cbore& value(const char (&unit)[I])
@@ -128,11 +134,11 @@ public:
         return *this;
     }
 
+    // insert value as byte array with length
+    Cbore& value(const uint8_t* unit, std::size_t length);
+
     // insert value as const char pointer with length
     Cbore& value(const char* unit, std::size_t length);
-
-    // insert value as simple type
-    Cbore& value(CborBase::SimpleType_t value);
 
     /*************************************************************************/
     /* Debug                                                                 */

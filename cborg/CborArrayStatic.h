@@ -125,10 +125,10 @@ public:
     {
         if (tag != TypeUnassigned)
         {
-            printf("[%u] ", tag);
+            printf("[%lu] ", tag);
         }
 
-        printf("Array: %u\r\n", size);
+        printf("Array: %lu\r\n", size);
 
         if (size > 0)
         {

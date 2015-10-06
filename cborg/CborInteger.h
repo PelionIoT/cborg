@@ -92,16 +92,16 @@ public:
         // write tag if set
         if (tag != TypeUnassigned)
         {
-            printf("[%u] ", tag);
+            printf("[%lu] ", tag);
         }
 
         if (majorType == TypeUnsigned)
         {
-            printf("%u\r\n", data.positive);
+            printf("%lu\r\n", data.positive);
         }
         else
         {
-            printf("%d\r\n", data.negative);
+            printf("%ld\r\n", data.negative);
         }
     }
 

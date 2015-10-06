@@ -138,10 +138,10 @@ public:
     {
         if (tag != TypeUnassigned)
         {
-            printf("[%u] ", tag);
+            printf("[%lu] ", tag);
         }
 
-        printf("Map: %u\r\n", size);
+        printf("Map: %lu\r\n", size);
 
         if (size > 0)
         {

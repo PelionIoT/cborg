@@ -61,6 +61,8 @@ public:
             tag(TypeUnassigned)
     {}
 
+    virtual ~CborBase() {};
+
     /*************************************************************************/
     /* Encode                                                                */
     /*************************************************************************/
@@ -106,6 +108,8 @@ public:
 
     virtual CborBase* at(std::size_t index)
     {
+        (void) index;
+
         return &CborNull;
     }
 
@@ -115,11 +119,15 @@ public:
 
     virtual CborBase* key(std::size_t index)
     {
+        (void) index;
+
         return &CborNull;
     }
 
     virtual CborBase* value(std::size_t index)
     {
+        (void) index;
+
         return &CborNull;
     }
 

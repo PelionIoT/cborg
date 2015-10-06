@@ -137,11 +137,11 @@ void CborBase::printQueue(std::list<CborBase*> queue)
                 uint32_t subtag = currentObject->getTag();
                 if (subtag != TypeUnassigned)
                 {
-                    printf("[%u] ", subtag);
+                    printf("[%lu] ", subtag);
                 }
 
                 uint32_t items = currentObject->getSize();
-                printf("Array: %u\r\n", items);
+                printf("Array: %lu\r\n", items);
 
                 if (items > 0)
                 {
@@ -163,11 +163,11 @@ void CborBase::printQueue(std::list<CborBase*> queue)
                 uint32_t subtag = currentObject->getTag();
                 if (subtag != TypeUnassigned)
                 {
-                    printf("[%u] ", subtag);
+                    printf("[%lu] ", subtag);
                 }
 
                 uint32_t items = currentObject->getSize();
-                printf("Map: %u\r\n", items);
+                printf("Map: %lu\r\n", items);
 
                 if (items > 0)
                 {
@@ -280,7 +280,7 @@ void CborBase::print()
     // write tag if set
     if (tag != TypeUnassigned)
     {
-        printf("(%u) ", tag);
+        printf("(%lu) ", tag);
     }
 
     printf("null\r\n");

@@ -67,7 +67,7 @@ public:
         // write tag if set
         if (tag != TypeUnassigned)
         {
-            printf("[%u] ", tag);
+            printf("[%lu] ", tag);
         }
 
         for (std::size_t idx = 0; idx < length; idx++)

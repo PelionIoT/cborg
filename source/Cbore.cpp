@@ -129,6 +129,17 @@ Cbore& Cbore::item(CborBase::SimpleType_t simpleType)
     return *this;
 }
 
+Cbore& Cbore::item(const uint8_t* bytes, std::size_t length)
+{
+    if ((itemSize(length) + length) <= (maxLength - currentLength))
+    {
+        writeTypeAndValue(CborBase::TypeBytes, length);
+        writeBytes(bytes, length);
+    }
+
+    return *this;
+}
+
 // write string, length
 Cbore& Cbore::item(const char* string, std::size_t length)
 {
@@ -227,6 +238,17 @@ Cbore& Cbore::value(CborBase::SimpleType_t unit)
     if (currentLength < maxLength)
     {
         cbor[currentLength++] = CborBase::TypeSpecial << 5 | unit;
+    }
+
+    return *this;
+}
+
+Cbore& Cbore::value(const uint8_t* unit, std::size_t length)
+{
+    if ((itemSize(length) + length) <= (maxLength - currentLength))
+    {
+        writeTypeAndValue(CborBase::TypeBytes, length);
+        writeBytes(unit, length);
     }
 
     return *this;
