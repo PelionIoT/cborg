@@ -1,6 +1,6 @@
 {
   "name": "cborg",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "CBOR library that favors encoding and decoding, but not modifications.",
   "keywords": [],
   "author": "Marcus Chang <marcus.chang@arm.com>",
