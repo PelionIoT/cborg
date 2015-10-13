@@ -310,7 +310,7 @@ uint32_t Cborg::getCBORLength()
     }
 }
 
-Cborg Cborg::find(int32_t key)
+Cborg Cborg::find(int32_t key) const
 {
     CborgHeader head;
     head.decode(cbor);
@@ -477,7 +477,7 @@ Cborg Cborg::find(int32_t key)
     return Cborg(NULL, 0);
 }
 
-Cborg Cborg::find(const char* key, std::size_t keyLength)
+Cborg Cborg::find(const char* key, std::size_t keyLength) const
 {
     CborgHeader head;
     head.decode(cbor);
@@ -646,7 +646,7 @@ Cborg Cborg::find(const char* key, std::size_t keyLength)
     return Cborg(NULL, 0);
 }
 
-Cborg Cborg::at(std::size_t index)
+Cborg Cborg::at(std::size_t index) const
 {
     CborgHeader head;
     head.decode(cbor);
@@ -924,7 +924,7 @@ uint8_t Cborg::getMinorType() const
 /* Debug related                                                             */
 /*****************************************************************************/
 
-void Cborg::print()
+void Cborg::print() const
 {
     CborgHeader head;
     std::size_t progress = 0;

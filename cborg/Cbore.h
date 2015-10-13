@@ -145,7 +145,7 @@ public:
     /*************************************************************************/
 
     /* debug */
-    void print();
+    void print() const;
 
 private:
     uint8_t itemSize(int32_t item);

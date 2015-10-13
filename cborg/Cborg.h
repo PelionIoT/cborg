@@ -41,10 +41,10 @@ public:
         return find(key, I - 1);
     }
 
-    Cborg find(int32_t key);
-    Cborg find(const char* key, std::size_t keyLength);
+    Cborg find(int32_t key) const;
+    Cborg find(const char* key, std::size_t keyLength) const;
 
-    Cborg at(std::size_t index);
+    Cborg at(std::size_t index) const;
 
     uint32_t getSize() const;
 
@@ -62,7 +62,7 @@ public:
     uint8_t getMinorType() const;
 
     /* debug */
-    void print();
+    void print() const;
 
 private:
     const uint8_t* cbor;

@@ -371,7 +371,7 @@ uint32_t Cbore::writeBytes(const uint8_t* source, uint32_t length)
 /* Debug related                                                             */
 /*****************************************************************************/
 
-void Cbore::print()
+void Cbore::print() const
 {
     Cborg decoder(cbor, maxLength);
     decoder.print();
