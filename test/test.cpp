@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-#if defined(TARGET_LIKE_MBED)
-#include "mbed.h"
-#endif
 
 #include "cborg/Cbor.h"
 
