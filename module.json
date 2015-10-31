@@ -15,13 +15,5 @@
       "type": "Apache-2.0"
     }
   ],
-  "dependencies": {},
-  "targetDependencies": {
-    "mbed-os": {
-      "mbed-drivers": "~0.10.0"
-    },
-    "mbed-classic": {
-      "mbed-classic": "~0.0.4"
-    }
-  }
+  "dependencies": {}
 }
