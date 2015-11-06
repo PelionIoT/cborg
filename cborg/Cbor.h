@@ -19,12 +19,6 @@
 #define __CBOR_H__
 
 #include "cborg/CborBase.h"
-#include "cborg/CborInteger.h"
-#include "cborg/CborBytes.h"
-#include "cborg/CborString.h"
-#include "cborg/CborArray.h"
-#include "cborg/CborMap.h"
-#include "cborg/CborBool.h"
 #include "cborg/Cbore.h"
 #include "cborg/Cborg.h"
 
