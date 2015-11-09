@@ -1,9 +1,11 @@
 # cborg
 Resistance is voltage divided by current.
 
-A simple CBOR encoder/decoder with a fluent API
+A simple CBOR encoder/decoder with a fluent API.
 
 **Example**
+
+Encode:
 
 ```C
 uint8_t buffer[200];
@@ -43,6 +45,13 @@ encoder.tag(1234)
 encoder.print();
 ```
   
+Decode:
+
+```C
+Cborg top(somebuffer, sizeof(somebuffer));
+// find 'intents' array entry 2
+Cborg intent = top.find("body").find("intents").at(2);
+```
 
 ## License
 This project is licensed under Apache-2.0
