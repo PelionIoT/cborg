@@ -18,7 +18,7 @@
 #include "cborg/Cborg.h"
 
 #include <list>
-#include <cstring>
+#include <string.h>
 #include <stdio.h>
 
 #if 0
