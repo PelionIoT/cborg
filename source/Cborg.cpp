@@ -26,6 +26,7 @@
 #define DEBUG_PRINTF(...)
 #endif
 
+#define LONG_MAX 0x7EEEEEEEL
 
 Cborg::Cborg()
     :   cbor(NULL),
@@ -71,7 +72,7 @@ bool Cborg::getCBOR(const uint8_t** pointer, uint32_t* length)
         }
         else if (simple == CborBase::TypeIndefinite)
         {
-            units = 0xFFFFFFFF;
+            units = LONG_MAX;
         }
 
         // iterate through cbor encoded buffer
@@ -80,7 +81,7 @@ bool Cborg::getCBOR(const uint8_t** pointer, uint32_t* length)
         while (progress < maxLength)
         {
             // decrement unit count unless set to indefinite
-            if (units != 0xFFFFFFFF)
+            if (units != LONG_MAX)
             {
                 units--;
             }
@@ -98,7 +99,7 @@ bool Cborg::getCBOR(const uint8_t** pointer, uint32_t* length)
                 if (simple == CborBase::TypeIndefinite)
                 {
                     list.push_back(units);
-                    units = 0xFFFFFFFF;
+                    units = LONG_MAX;
                 }
                 else if (head.getValue() > 0)
                 {
@@ -111,7 +112,7 @@ bool Cborg::getCBOR(const uint8_t** pointer, uint32_t* length)
                 if (simple == CborBase::TypeIndefinite)
                 {
                     list.push_back(units);
-                    units = 0xFFFFFFFF;
+                    units = LONG_MAX;
                 }
                 else if (head.getValue() > 0)
                 {
@@ -123,7 +124,7 @@ bool Cborg::getCBOR(const uint8_t** pointer, uint32_t* length)
                     && (simple == CborBase::TypeIndefinite))
             {
                 list.push_back(units);
-                units = 0xFFFFFFFF;
+                units = LONG_MAX;
             }
 
             // increment progress based on cbor object size
@@ -208,7 +209,7 @@ uint32_t Cborg::getCBORLength()
         }
         else if (simple == CborBase::TypeIndefinite)
         {
-            units = 0xFFFFFFFF;
+            units = LONG_MAX;
         }
 
         // iterate through cbor encoded buffer
@@ -217,7 +218,7 @@ uint32_t Cborg::getCBORLength()
         while (progress < maxLength)
         {
             // decrement unit count unless set to indefinite
-            if (units != 0xFFFFFFFF)
+            if (units != LONG_MAX)
             {
                 units--;
             }
@@ -235,7 +236,7 @@ uint32_t Cborg::getCBORLength()
                 if (simple == CborBase::TypeIndefinite)
                 {
                     list.push_back(units);
-                    units = 0xFFFFFFFF;
+                    units = LONG_MAX;
                 }
                 else if (head.getValue() > 0)
                 {
@@ -248,7 +249,7 @@ uint32_t Cborg::getCBORLength()
                 if (simple == CborBase::TypeIndefinite)
                 {
                     list.push_back(units);
-                    units = 0xFFFFFFFF;
+                    units = LONG_MAX;
                 }
                 else if (head.getValue() > 0)
                 {
@@ -260,7 +261,7 @@ uint32_t Cborg::getCBORLength()
                     && (simple == CborBase::TypeIndefinite))
             {
                 list.push_back(units);
-                units = 0xFFFFFFFF;
+                units = LONG_MAX;
             }
 
             // increment progress based on cbor object size
@@ -319,7 +320,7 @@ Cborg Cborg::find(int32_t key) const
     uint8_t simple = head.getMinorType();
 
     uint32_t units = 2 * head.getValue();
-    units = (simple == CborBase::TypeIndefinite) ? 0xFFFFFFFF : units;
+    units = (simple == CborBase::TypeIndefinite) ? LONG_MAX : units;
 
     // only continue if type is Cbor Map and the map is not empty
     if ((type != CborBase::TypeMap) || (units == 0))
@@ -340,7 +341,7 @@ Cborg Cborg::find(int32_t key) const
     while (progress < maxLength)
     {
         // decrement unit count unless set to indefinite
-        if (units != 0xFFFFFFFF)
+        if (units != LONG_MAX)
         {
             units--;
         }
@@ -360,7 +361,7 @@ Cborg Cborg::find(int32_t key) const
             if (simple == CborBase::TypeIndefinite)
             {
                 list.push_back(units);
-                units = 0xFFFFFFFF;
+                units = LONG_MAX;
             }
             else if (head.getValue() > 0)
             {
@@ -375,7 +376,7 @@ Cborg Cborg::find(int32_t key) const
             if (simple == CborBase::TypeIndefinite)
             {
                 list.push_back(units);
-                units = 0xFFFFFFFF;
+                units = LONG_MAX;
             }
             else if (head.getValue() > 0)
             {
@@ -389,7 +390,7 @@ Cborg Cborg::find(int32_t key) const
             gotKey = false;
 
             list.push_back(units);
-            units = 0xFFFFFFFF;
+            units = LONG_MAX;
         }
         else
         {
@@ -410,14 +411,14 @@ Cborg Cborg::find(int32_t key) const
 
                     if (type == CborBase::TypeUnsigned)
                     {
-                        if (head.getValue() == key)
+                        if ((int32_t) head.getValue() == key)
                         {
                             found = true;
                         }
                     }
                     else if (type == CborBase::TypeNegative)
                     {
-                        if ((-1 - head.getValue()) == key)
+                        if ((-1 - (int32_t) head.getValue()) == key)
                         {
                             found = true;
                         }
@@ -486,7 +487,7 @@ Cborg Cborg::find(const char* key, std::size_t keyLength) const
     uint8_t simple = head.getMinorType();
 
     uint32_t units = 2 * head.getValue();
-    units = (simple == CborBase::TypeIndefinite) ? 0xFFFFFFFF : units;
+    units = (simple == CborBase::TypeIndefinite) ? LONG_MAX : units;
 
     // only continue if type is Cbor Map, key is not NULL, and the map is not empty
     if ((type != CborBase::TypeMap) || (key == NULL) || (units == 0))
@@ -507,7 +508,7 @@ Cborg Cborg::find(const char* key, std::size_t keyLength) const
     while (progress < maxLength)
     {
         // decrement unit count unless set to indefinite
-        if (units != 0xFFFFFFFF)
+        if (units != LONG_MAX)
         {
             units--;
         }
@@ -527,7 +528,7 @@ Cborg Cborg::find(const char* key, std::size_t keyLength) const
             if (simple == CborBase::TypeIndefinite)
             {
                 list.push_back(units);
-                units = 0xFFFFFFFF;
+                units = LONG_MAX;
             }
             else if (head.getValue() > 0)
             {
@@ -542,7 +543,7 @@ Cborg Cborg::find(const char* key, std::size_t keyLength) const
             if (simple == CborBase::TypeIndefinite)
             {
                 list.push_back(units);
-                units = 0xFFFFFFFF;
+                units = LONG_MAX;
             }
             else if (head.getValue() > 0)
             {
@@ -556,7 +557,7 @@ Cborg Cborg::find(const char* key, std::size_t keyLength) const
             gotKey = false;
 
             list.push_back(units);
-            units = 0xFFFFFFFF;
+            units = LONG_MAX;
         }
         else
         {
@@ -656,10 +657,10 @@ Cborg Cborg::at(std::size_t index) const
 
     // set units to elements in array
     int32_t units = head.getValue();
-    units = (simple == CborBase::TypeIndefinite) ? 0xFFFFFFFF : units;
+    units = (simple == CborBase::TypeIndefinite) ? LONG_MAX : units;
 
     // only continue if container is Cbor Map, not empty, and index is within bounds
-    if ((type != CborBase::TypeArray) || (units == 0) || (index >= units))
+    if ((type != CborBase::TypeArray) || (units == 0) || ((int32_t) index >= units))
     {
         return Cborg(NULL, 0);
     }
@@ -684,7 +685,7 @@ Cborg Cborg::at(std::size_t index) const
         else
         {
             // decrement unit count unless set to indefinite
-            if (units != 0xFFFFFFFF)
+            if (units != LONG_MAX)
             {
                 units--;
             }
@@ -702,7 +703,7 @@ Cborg Cborg::at(std::size_t index) const
                 if (simple == CborBase::TypeIndefinite)
                 {
                     list.push_back(units);
-                    units = 0xFFFFFFFF;
+                    units = LONG_MAX;
                 }
                 else if (head.getValue() > 0)
                 {
@@ -715,7 +716,7 @@ Cborg Cborg::at(std::size_t index) const
                 if (simple == CborBase::TypeIndefinite)
                 {
                     list.push_back(units);
-                    units = 0xFFFFFFFF;
+                    units = LONG_MAX;
                 }
                 else if (head.getValue() > 0)
                 {
@@ -727,7 +728,7 @@ Cborg Cborg::at(std::size_t index) const
                     && (simple == CborBase::TypeIndefinite))
             {
                 list.push_back(units);
-                units = 0xFFFFFFFF;
+                units = LONG_MAX;
             }
 
             // increment progress based on cbor object size
@@ -790,7 +791,7 @@ uint32_t Cborg::getSize() const
     {
         if (simple == CborBase::TypeIndefinite)
         {
-            return 0xFFFFFFFF;
+            return LONG_MAX;
         }
         else
         {
@@ -935,7 +936,7 @@ void Cborg::print() const
     while (progress < maxLength)
     {
         // decrement unit count unless set to indefinite
-        if (units != 0xFFFFFFFF)
+        if (units != LONG_MAX)
         {
             units--;
         }
@@ -957,7 +958,7 @@ void Cborg::print() const
 
         if (tag != CborBase::TypeUnassigned)
         {
-            printf("[%u] ", tag);
+            printf("[%lu] ", tag);
         }
 
         /* container object */
@@ -968,11 +969,11 @@ void Cborg::print() const
                 printf("Map:\r\n");
 
                 list.push_back(units);
-                units = 0xFFFFFFFF;
+                units = LONG_MAX;
             }
             else if (head.getValue() > 0)
             {
-                printf("Map: %u\r\n", head.getValue());
+                printf("Map: %lu\r\n", head.getValue());
 
                 list.push_back(units);
                 units = 2 * head.getValue();
@@ -985,11 +986,11 @@ void Cborg::print() const
                 printf("Array:\r\n");
 
                 list.push_back(units);
-                units = 0xFFFFFFFF;
+                units = LONG_MAX;
             }
             else if (head.getValue() > 0)
             {
-                printf("Array: %u\r\n", head.getValue());
+                printf("Array: %lu\r\n", head.getValue());
 
                 list.push_back(units);
                 units = head.getValue();
@@ -1000,14 +1001,14 @@ void Cborg::print() const
             printf("Bytes:\r\n");
 
             list.push_back(units);
-            units = 0xFFFFFFFF;
+            units = LONG_MAX;
         }
         else if ((type == CborBase::TypeString) && (simple == CborBase::TypeIndefinite))
         {
             printf("String:\r\n");
 
             list.push_back(units);
-            units = 0xFFFFFFFF;
+            units = LONG_MAX;
         }
         else
         {
@@ -1021,7 +1022,7 @@ void Cborg::print() const
 
                         if (result)
                         {
-                            printf("%u\r\n", integer);
+                            printf("%lu\r\n", integer);
                         }
                         else
                         {
@@ -1038,7 +1039,7 @@ void Cborg::print() const
 
                         if (result)
                         {
-                            printf("%d\r\n", integer);
+                            printf("%ld\r\n", integer);
                         }
                         else
                         {
@@ -1113,7 +1114,7 @@ void Cborg::print() const
                         }
                         else if (simple == CborBase::TypeDoubleFloat)
                         {
-                            printf("doubel float\r\n");
+                            printf("double float\r\n");
                         }
                     }
                     break;
