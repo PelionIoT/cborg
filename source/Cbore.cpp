@@ -265,6 +265,15 @@ Cbore& Cbore::value(const char* unit, std::size_t length)
     return *this;
 }
 
+Cbore& Cbore::reset(bool resetBuffer) {
+    currentLength = 0;
+    if(resetBuffer) {
+        memset(cbor, 0x00, maxLength);
+    }
+
+    return *this;
+}
+
 /*****************************************************************************/
 /* Helper Functions                                                          */
 /*****************************************************************************/
