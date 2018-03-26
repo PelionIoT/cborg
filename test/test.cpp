@@ -320,7 +320,31 @@ void test7()
     top.print();
 }
 
+void test8()
+{
+    uint8_t buffer[32];
+    Cbore encoder(buffer, 32);
+    Cborg decoder(buffer, 32);
 
+    printf("Test reset function, encoding 1 on new Cbore object\r\n");
+
+    encoder.tag(1234).array().item(1).item(2).item(3).end();
+    encoder.print();
+
+    encoder.reset(false /* resetBuffer*/);
+
+    printf("Test reset function, encoding 2 on same Cbore object\r\n");
+
+    encoder.tag(1234).array().item(1).item(2).item(3).end();
+    encoder.print();
+
+    encoder.reset(true /* resetBuffer*/);
+
+    printf("Test reset function, encoding 3 on same Cbore object with buffer reset\r\n");
+
+    encoder.tag(1234).array().item(1).item(2).item(3).end();
+    encoder.print();
+}
 
 /*****************************************************************************/
 /* App start                                                                 */
@@ -333,9 +357,10 @@ void app_start(int, char *[])
     test4();
 
     test5();
-    
+
     test6();
     test7();
+    test8();
 }
 
 /*****************************************************************************/
