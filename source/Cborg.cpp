@@ -18,6 +18,7 @@
 
 #include <list>
 #include <stdio.h>
+#include <inttypes.h>
 
 #if 0
 #include <stdio.h>
@@ -958,7 +959,7 @@ void Cborg::print() const
 
         if (tag != CborBase::TypeUnassigned)
         {
-            printf("[%lu] ", tag);
+            printf("[%" PRIu32 "] ", tag);
         }
 
         /* container object */
@@ -973,7 +974,7 @@ void Cborg::print() const
             }
             else if (head.getValue() > 0)
             {
-                printf("Map: %lu\r\n", head.getValue());
+                printf("Map: %" PRIu32 "\r\n", head.getValue());
 
                 list.push_back(units);
                 units = 2 * head.getValue();
@@ -990,7 +991,7 @@ void Cborg::print() const
             }
             else if (head.getValue() > 0)
             {
-                printf("Array: %lu\r\n", head.getValue());
+                printf("Array: %" PRIu32 "\r\n", head.getValue());
 
                 list.push_back(units);
                 units = head.getValue();
@@ -1022,7 +1023,7 @@ void Cborg::print() const
 
                         if (result)
                         {
-                            printf("%lu\r\n", integer);
+                            printf("%" PRIu32 "\r\n", integer);
                         }
                         else
                         {
@@ -1039,7 +1040,7 @@ void Cborg::print() const
 
                         if (result)
                         {
-                            printf("%ld\r\n", integer);
+                            printf("%" PRIi32 "\r\n", integer);
                         }
                         else
                         {
