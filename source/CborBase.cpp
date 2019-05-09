@@ -17,6 +17,7 @@
 #include "cborg/CborBase.h"
 
 #include <stdio.h>
+#include <cinttypes>
 #include <list>
 
 CborBase CborNull;
@@ -137,11 +138,11 @@ void CborBase::printQueue(std::list<CborBase*> queue)
                 uint32_t subtag = currentObject->getTag();
                 if (subtag != TypeUnassigned)
                 {
-                    printf("[%lu] ", subtag);
+                    printf("[%" PRIu32 "] ", subtag);
                 }
 
                 uint32_t items = currentObject->getSize();
-                printf("Array: %lu\r\n", items);
+                printf("Array: %" PRIu32 "\r\n", items);
 
                 if (items > 0)
                 {
@@ -163,11 +164,11 @@ void CborBase::printQueue(std::list<CborBase*> queue)
                 uint32_t subtag = currentObject->getTag();
                 if (subtag != TypeUnassigned)
                 {
-                    printf("[%lu] ", subtag);
+                    printf("[%" PRIu32 "] ", subtag);
                 }
 
                 uint32_t items = currentObject->getSize();
-                printf("Map: %lu\r\n", items);
+                printf("Map: %" PRIu32 "\r\n", items);
 
                 if (items > 0)
                 {
@@ -280,7 +281,7 @@ void CborBase::print()
     // write tag if set
     if (tag != TypeUnassigned)
     {
-        printf("(%lu) ", tag);
+        printf("(%" PRIu32 ") ", tag);
     }
 
     printf("null\r\n");
