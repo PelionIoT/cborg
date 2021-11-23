@@ -14,139 +14,120 @@
  * limitations under the License.
  */
 
-
 #ifndef __CBOR_BASE_H__
 #define __CBOR_BASE_H__
 
 #include <stdint.h>
+#include <stdio.h>
+
 #include <cstddef>
 #include <list>
-
-#include <stdio.h>
 
 class CborBase;
 extern CborBase CborNull;
 
-class CborBase
-{
-public:
-    typedef enum {
-        TypeUnsigned    = 0x00,
-        TypeNegative    = 0x01,
-        TypeBytes       = 0x02,
-        TypeString      = 0x03,
-        TypeArray       = 0x04,
-        TypeMap         = 0x05,
-        TypeTag         = 0x06,
-        TypeSpecial     = 0x07,
-        TypeRaw         = 0xFE,
-        TypeUnassigned  = 0xFF
-    } MajorType_t;
+class CborBase {
+ public:
+  using MajorType_t = enum {
+    TypeUnsigned = 0x00,
+    TypeNegative = 0x01,
+    TypeBytes = 0x02,
+    TypeString = 0x03,
+    TypeArray = 0x04,
+    TypeMap = 0x05,
+    TypeTag = 0x06,
+    TypeSpecial = 0x07,
+    TypeRaw = 0xFE,
+    TypeUnassigned = 0xFF
+  };
 
-    typedef enum {
-        TypeFalse       = 0x14,
-        TypeTrue        = 0x15,
-        TypeNull        = 0x16,
-        TypeUndefined   = 0x17,
-        TypeUnknown     = 0x18,
-        TypeHalfFloat   = 0x19,
-        TypeSingleFloat = 0x1A,
-        TypeDoubleFloat = 0x1B,
-        TypeIndefinite  = 0x1F
-    } SimpleType_t;
+  using SimpleType_t = enum {
+    TypeFalse = 0x14,
+    TypeTrue = 0x15,
+    TypeNull = 0x16,
+    TypeUndefined = 0x17,
+    TypeUnknown = 0x18,
+    TypeHalfFloat = 0x19,
+    TypeSingleFloat = 0x1A,
+    TypeDoubleFloat = 0x1B,
+    TypeIndefinite = 0x1F
+  };
 
-    CborBase(MajorType_t _majorType = TypeSpecial, SimpleType_t _minorType = TypeNull)
-        :   majorType(_majorType),
-            minorType(_minorType),
-            tag(TypeUnassigned)
-    {}
+  CborBase(MajorType_t _majorType = TypeSpecial,
+           SimpleType_t _minorType = TypeNull)
+      : majorType(_majorType), minorType(_minorType), tag(TypeUnassigned) {}
 
-    virtual ~CborBase() {};
+  virtual ~CborBase(){};
 
-    /*************************************************************************/
-    /* Encode                                                                */
-    /*************************************************************************/
+  /*************************************************************************/
+  /* Encode                                                                */
+  /*************************************************************************/
 
-    virtual uint32_t writeCBOR(uint8_t* destination, uint32_t maxLength);
+  virtual uint32_t writeCBOR(uint8_t* destination, uint32_t maxLength);
 
-    /*************************************************************************/
-    /* Mutators                                                              */
-    /*************************************************************************/
+  /*************************************************************************/
+  /* Mutators                                                              */
+  /*************************************************************************/
 
-    uint8_t getType() const
-    {
-        return majorType;
-    }
+  uint8_t getType() const { return majorType; }
 
-    void setTag(uint32_t _tag)
-    {
-        tag = _tag;
-    }
+  void setTag(uint32_t _tag) { tag = _tag; }
 
-    uint32_t getTag() const
-    {
-        return tag;
-    }
+  uint32_t getTag() const { return tag; }
 
-    /*************************************************************************/
-    /* Container                                                             */
-    /*************************************************************************/
+  /*************************************************************************/
+  /* Container                                                             */
+  /*************************************************************************/
 
-    virtual uint32_t getLength() const
-    {
-        return 0;
-    }
+  virtual uint32_t getLength() const { return 0; }
 
-    virtual uint32_t getSize() const
-    {
-        return 0;
-    }
+  virtual uint32_t getSize() const { return 0; }
 
-    /*************************************************************************/
-    /* Array                                                                 */
-    /*************************************************************************/
+  /*************************************************************************/
+  /* Array                                                                 */
+  /*************************************************************************/
 
-    virtual CborBase* at(std::size_t index)
-    {
-        (void) index;
+  virtual CborBase* at(std::size_t index) {
+    (void)index;
 
-        return &CborNull;
-    }
+    return &CborNull;
+  }
 
-    /*************************************************************************/
-    /* Map                                                                   */
-    /*************************************************************************/
+  /*************************************************************************/
+  /* Map                                                                   */
+  /*************************************************************************/
 
-    virtual CborBase* key(std::size_t index)
-    {
-        (void) index;
+  virtual CborBase* key(std::size_t index) {
+    (void)index;
 
-        return &CborNull;
-    }
+    return &CborNull;
+  }
 
-    virtual CborBase* value(std::size_t index)
-    {
-        (void) index;
+  virtual CborBase* value(std::size_t index) {
+    (void)index;
 
-        return &CborNull;
-    }
+    return &CborNull;
+  }
 
-    /*************************************************************************/
-    /* Debug                                                                 */
-    /*************************************************************************/
+  /*************************************************************************/
+  /* Debug                                                                 */
+  /*************************************************************************/
 
-    virtual void print();
+  virtual void print();
 
-protected:
-    static uint32_t writeQueue(uint8_t* destination, uint32_t maxLength, std::list<CborBase*>& queue);
-    static uint8_t writeTypeAndValue(uint8_t* destination, uint32_t maxLength, uint8_t majorType, uint32_t value);
-    static uint32_t writeBytes(uint8_t* destination, uint32_t maxLength, const uint8_t* source, uint32_t length);
-    static void printQueue(std::list<CborBase*> queue);
+ protected:
+  static uint32_t writeQueue(uint8_t* destination, uint32_t maxLength,
+                             std::list<CborBase*>& queue);
+  static uint8_t writeTypeAndValue(uint8_t* destination, uint32_t maxLength,
+                                   uint8_t majorType, uint32_t value);
+  static uint32_t writeBytes(uint8_t* destination, uint32_t maxLength,
+                             const uint8_t* source, uint32_t length);
+  static void printQueue(std::list<CborBase*> queue);
 
-protected:
-    uint8_t majorType;
-    uint8_t minorType;
-    uint32_t tag;
+ protected:
+  uint8_t majorType;
+  uint8_t minorType;
+  uint32_t tag;
 };
 
-#endif // __CBOR_BASE_H__
+#endif  // __CBOR_BASE_H__

@@ -74,7 +74,8 @@ Cbore& Cbore::array() {
 
 // create arrray in array
 Cbore& Cbore::array(std::size_t items) {
-  if ((cbor != nullptr) && (itemSize(items) <= (maxLength - currentLength))) {
+  if ((cbor != nullptr) && (itemSize(static_cast<std::uint32_t>(items)) <=
+                            (maxLength - currentLength))) {
     writeTypeAndValue(CborBase::TypeArray, items);
   }
 
@@ -98,6 +99,32 @@ Cbore& Cbore::item(int32_t value) {
   return *this;
 }
 
+Cbore& Cbore::item(uint32_t value) {
+  if (itemSize(value) <= (maxLength - currentLength)) {
+    writeTypeAndValue(CborBase::TypeUnsigned, value);
+  }
+
+  return *this;
+}
+
+Cbore& Cbore::item(bool value) {
+  if (value) {
+    return this->value(CborBase::TypeTrue);
+  }
+  return this->value(CborBase::TypeFalse);
+}
+
+Cbore& Cbore::item(std::chrono::system_clock::time_point unixTimeStamp) {
+  time_t time_stamp = std::chrono::system_clock::to_time_t(unixTimeStamp);
+  if (itemSize(static_cast<std::uint32_t>(time_stamp)) <=
+      (maxLength - currentLength)) {
+    writeTypeAndValue(CborBase::TypeTag, 1);
+    writeTypeAndValue(CborBase::TypeUnsigned, time_stamp);
+  }
+
+  return *this;
+}
+
 // insert simple type
 Cbore& Cbore::item(CborBase::SimpleType_t simpleType) {
   if (currentLength < maxLength) {
@@ -108,7 +135,8 @@ Cbore& Cbore::item(CborBase::SimpleType_t simpleType) {
 }
 
 Cbore& Cbore::item(const uint8_t* bytes, std::size_t length) {
-  if ((itemSize(length) + length) <= (maxLength - currentLength)) {
+  if ((itemSize(static_cast<std::uint32_t>(length)) + length) <=
+      (maxLength - currentLength)) {
     writeTypeAndValue(CborBase::TypeBytes, length);
     writeBytes(bytes, length);
   }
@@ -118,7 +146,8 @@ Cbore& Cbore::item(const uint8_t* bytes, std::size_t length) {
 
 // write string, length
 Cbore& Cbore::item(const char* string, std::size_t length) {
-  if ((itemSize(length) + length) <= (maxLength - currentLength)) {
+  if ((itemSize(static_cast<std::uint32_t>(length)) + length) <=
+      (maxLength - currentLength)) {
     writeTypeAndValue(CborBase::TypeString, length);
     writeBytes(reinterpret_cast<const uint8_t*>(string), length);
   }
@@ -141,7 +170,8 @@ Cbore& Cbore::map() {
 
 // create map in array
 Cbore& Cbore::map(std::size_t items) {
-  if ((cbor != nullptr) && (itemSize(items) <= (maxLength - currentLength))) {
+  if ((cbor != nullptr) && (itemSize(static_cast<std::uint32_t>(items)) <=
+                            (maxLength - currentLength))) {
     writeTypeAndValue(CborBase::TypeMap, items);
   }
 
@@ -167,7 +197,8 @@ Cbore& Cbore::key(int32_t unit) {
 
 // insert key as const char pointer with length
 Cbore& Cbore::key(const char* unit, std::size_t length) {
-  if ((itemSize(length) + length) <= (maxLength - currentLength)) {
+  if ((itemSize(static_cast<std::uint32_t>(length)) + length) <=
+      (maxLength - currentLength)) {
     writeTypeAndValue(CborBase::TypeString, length);
     writeBytes(reinterpret_cast<const uint8_t*>(unit), length);
   }
@@ -200,7 +231,8 @@ Cbore& Cbore::value(CborBase::SimpleType_t unit) {
 }
 
 Cbore& Cbore::value(const uint8_t* unit, std::size_t length) {
-  if ((itemSize(length) + length) <= (maxLength - currentLength)) {
+  if ((itemSize(static_cast<std::uint32_t>(length)) + length) <=
+      (maxLength - currentLength)) {
     writeTypeAndValue(CborBase::TypeBytes, length);
     writeBytes(unit, length);
   }
@@ -209,7 +241,8 @@ Cbore& Cbore::value(const uint8_t* unit, std::size_t length) {
 }
 
 Cbore& Cbore::value(const char* unit, std::size_t length) {
-  if ((itemSize(length) + length) <= (maxLength - currentLength)) {
+  if ((itemSize(static_cast<std::uint32_t>(length)) + length) <=
+      (maxLength - currentLength)) {
     writeTypeAndValue(CborBase::TypeString, length);
     writeBytes(reinterpret_cast<const uint8_t*>(unit), length);
   }
@@ -233,6 +266,10 @@ Cbore& Cbore::reset(bool resetBuffer) {
 uint8_t Cbore::itemSize(int32_t item) {
   item = (item < 0) ? -1 - item : item;
 
+  return (itemSize(static_cast<std::uint32_t>(item)));
+}
+
+uint8_t Cbore::itemSize(uint32_t item) {
   if (item <= 23) {
     return 1;
   }

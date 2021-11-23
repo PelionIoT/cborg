@@ -682,6 +682,18 @@ bool Cborg::getUnsigned(uint32_t* integer) const {
   return false;
 }
 
+bool Cborg::getTimeStamp(time_t* timeStamp) const {
+  CborgHeader head;
+  head.decode(cbor);
+
+  if (head.getMajorType() == CborBase::TypeUnsigned && head.getTag() == 1) {
+    *timeStamp = head.getValue();
+
+    return true;
+  }
+  return false;
+}
+
 bool Cborg::getNegative(int32_t* integer) const {
   CborgHeader head;
   head.decode(cbor);

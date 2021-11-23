@@ -52,6 +52,8 @@ public:
     bool getUnsigned(uint32_t*) const;
     bool getNegative(int32_t*) const;
 
+    bool getTimeStamp(time_t*) const;
+
     bool getBytes(const uint8_t** pointer, uint32_t* length) const;
     bool getString(const char** pointer, uint32_t* length) const;
     bool getString(std::string& str) const;
