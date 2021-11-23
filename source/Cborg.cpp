@@ -41,6 +41,10 @@ Cborg::Cborg() : cbor(nullptr), maxLength(0) {}
 Cborg::Cborg(const uint8_t* _cbor, std::size_t _length)
     : cbor(_cbor), maxLength(_length) {}
 
+Cborg::Cborg(const uint8_t* _cbor, std::size_t _length,
+             std::int32_t _arrayUnits)
+    : cbor(_cbor), maxLength(_length), _arrayUnits(_arrayUnits) {}
+
 bool Cborg::getCBOR(const uint8_t** pointer, uint32_t* length) {
   // decode current header
   CborgHeader head;
@@ -586,7 +590,7 @@ Cborg Cborg::at(std::size_t index) const {
   while (progress < maxLength) {
     // compare current array index with the one sought for and return if found
     if (currentIndex == index) {
-      return {&cbor[progress], maxLength - progress};
+      return {&cbor[progress], maxLength - progress, units};
     }
 
     // decrement unit count unless set to indefinite
@@ -657,6 +661,112 @@ Cborg Cborg::at(std::size_t index) const {
     // if element is on the top level, increment index counter
     if (list.empty()) {
       currentIndex++;
+    }
+  }
+
+  // index not found, return null object
+  return {nullptr, 0};
+}
+
+Cborg Cborg::nextMapItem(std::size_t index) const {
+  return nextArrayItem(index * 2);
+}
+
+Cborg Cborg::nextArrayItem(std::size_t index) const {
+  CborgHeader head;
+  head.decode(cbor);
+
+  // set units to elements in array
+  int32_t units = _arrayUnits;  // head.getValue();
+
+  if (units == 0) {
+    return {nullptr, 0};
+  }
+
+  // got array, look for index
+  std::list<uint32_t> list;
+  std::size_t current_index = 0;
+
+  // skip array header
+  std::size_t progress = 0;
+
+  // iterate through cbor encoded buffer
+  // stop when maximum length is reached or
+  // the current map is finished
+  while (progress < maxLength) {
+    // compare current array index with the one sought for and return if found
+    if (current_index == index) {
+      return {&cbor[progress], maxLength - progress, units};
+    }
+
+    // decrement unit count unless set to indefinite
+    if (units != maxOf(units)) {
+      units--;
+    }
+
+    // decode header for cbor object currently pointed to
+    head.decode(&cbor[progress]);
+
+    uint8_t type = head.getMajorType();
+    uint8_t simple = head.getMinorType();
+
+    // if object is a container type (map or array), push remaining units onto
+    // the stack (list) and set units to the number of elements in the new
+    // container.
+    if (type == CborBase::TypeMap) {
+      if (simple == CborBase::TypeIndefinite) {
+        list.push_back(units);
+        units = maxOf(units);
+      } else if (head.getValue() > 0) {
+        list.push_back(units);
+        units = 2 * head.getValue();
+      }
+    } else if (type == CborBase::TypeArray) {
+      if (simple == CborBase::TypeIndefinite) {
+        list.push_back(units);
+        units = maxOf(units);
+      } else if (head.getValue() > 0) {
+        list.push_back(units);
+        units = head.getValue();
+      }
+    } else if (((type == CborBase::TypeBytes) ||
+                (type == CborBase::TypeString)) &&
+               (simple == CborBase::TypeIndefinite)) {
+      list.push_back(units);
+      units = maxOf(units);
+    }
+
+    // increment progress based on cbor object size
+    if (((type == CborBase::TypeBytes) || (type == CborBase::TypeString)) &&
+        (simple != CborBase::TypeIndefinite)) {
+      progress += head.getLength() + head.getValue();
+    } else {
+      progress += head.getLength();
+    }
+
+    // finished processing all elements in the current container object
+    // step back up one level by popping remaining elements from the stack
+    // (list) do it in a while loop since we might have to step back up multiple
+    // times
+    while ((units == 0) || ((type == CborBase::TypeSpecial) &&
+                            (simple == CborBase::TypeIndefinite))) {
+      type = CborBase::TypeSpecial;
+      simple = CborBase::TypeNull;
+
+      if (!list.empty()) {
+        // pop from stack
+        units = list.back();
+        list.pop_back();
+      } else {
+        // stack is empty, means we have reached the end of the current
+        // container return a Cbor null object
+        return {nullptr, 0};
+      }
+    }
+
+    // if element is on the top level, increment index counter
+    if (list.empty()) {
+      current_index++;
     }
   }
 

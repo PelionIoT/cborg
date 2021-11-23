@@ -29,6 +29,7 @@ class Cborg {
  public:
   Cborg();
   Cborg(const uint8_t* cbor, std::size_t maxLength);
+  Cborg(const uint8_t* cbor, std::size_t maxLength, std::int32_t _arrayUnits);
 
   bool isNull();
 
@@ -38,19 +39,19 @@ class Cborg {
 
   /* map functions */
   template <std::size_t I>
-  Cborg find(const char (&key)[I]) {
+  [[nodiscard]] Cborg find(const char (&key)[I]) {
     return find(key, I - 1);
   }
 
-  Cborg find(int32_t key) const;
-  Cborg find(const char* key, std::size_t keyLength) const;
+  [[nodiscard]] Cborg find(int32_t key) const;
+  [[nodiscard]] Cborg find(const char* key, std::size_t keyLength) const;
 
-  Cborg getKey();
+  [[nodiscard]] Cborg getKey();
   bool getKey(std::string& str);
   bool getKey(int32_t& str);
   bool getKey(uint32_t& str);
 
-  Cborg getValue();
+  [[nodiscard]] Cborg getValue();
   bool getValueUnsigned(uint32_t& value);
   bool getValueNegative(int32_t& value);
   bool getValueSigned(int32_t& value);
@@ -62,6 +63,8 @@ class Cborg {
   bool getValueString(std::string& str);
 
   [[nodiscard]] Cborg at(std::size_t index) const;
+  [[nodiscard]] Cborg nextArrayItem(std::size_t index = 1) const;
+  [[nodiscard]] Cborg nextMapItem(std::size_t index = 1) const;
 
   [[nodiscard]] uint32_t getSize() const;
 
@@ -87,6 +90,7 @@ class Cborg {
  private:
   const uint8_t* cbor;
   std::size_t maxLength;
+  std::int32_t _arrayUnits = std::numeric_limits<std::int32_t>::max();
 };
 
 #endif  // __CBORG_H__
