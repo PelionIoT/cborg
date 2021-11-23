@@ -283,8 +283,7 @@ Cbore& Cbore::value(const char* unit, std::size_t length) {
 }
 
 Cbore& Cbore::value(std::string_view unit) {
-  if ((itemSize(unit.size())) <=
-      (maxLength - currentLength)) {
+  if ((itemSize(unit.size())) <= (maxLength - currentLength)) {
     writeTypeAndValue(CborBase::TypeString, unit.size());
     writeBytes(reinterpret_cast<const uint8_t*>(unit.data()), unit.size());
   }
@@ -324,9 +323,9 @@ uint8_t Cbore::itemSize(uint32_t item) {
   return 5;
 }
 
-uint8_t Cbore::itemSize(std::size_t item) {
-  return itemSize(static_cast<uint32_t>(item));
-}
+// uint8_t Cbore::itemSize(std::size_t item) {
+//   return itemSize(static_cast<uint32_t>(item));
+// }
 
 size_t Cbore::itemSize(std::string_view str) {
   return (itemSize(str.size()) + str.size());

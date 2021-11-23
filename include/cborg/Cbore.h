@@ -141,7 +141,7 @@ class Cbore {
     if ((itemSize(static_cast<std::uint32_t>(I)) + I) <=
         (maxLength - currentLength)) {
       writeTypeAndValue(CborBase::TypeString, I - 1);
-      writeBytes(reinterpret_cast<const uint8_t*>(unit), I - 1);
+      writeBytes(reinterpret_cast<const std::uint8_t*>(unit), I - 1);
     }
 
     return *this;
@@ -157,10 +157,16 @@ class Cbore {
   Cbore& value(std::string_view unit);
 
   // get the size of an item (used to calculate buffer size)
-  static uint8_t itemSize(int32_t item);
-  static uint8_t itemSize(uint32_t item);
-  static uint8_t itemSize(std::size_t item);
-  static uint8_t itemSizeBool();
+  static std::uint8_t itemSize(int32_t item);
+  static std::uint8_t itemSize(uint32_t item);
+
+  template <typename T = std::enable_if<
+                !std::is_same_v<std::size_t, std::uint32_t>>>  // NOLINT
+  static std::uint8_t itemSize(std::size_t item) {
+    return itemSize(static_cast<uint32_t>(item));
+  };
+
+  static std::uint8_t itemSizeBool();
   static size_t itemSize(std::string_view str);
 
   /*************************************************************************/
