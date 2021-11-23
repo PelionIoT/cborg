@@ -109,9 +109,9 @@ Cbore& Cbore::item(uint32_t value) {
 
 Cbore& Cbore::item(bool value) {
   if (value) {
-    return this->value(CborBase::TypeTrue);
+    return this->item(CborBase::TypeTrue);
   }
-  return this->value(CborBase::TypeFalse);
+  return this->item(CborBase::TypeFalse);
 }
 
 Cbore& Cbore::item(std::chrono::system_clock::time_point unixTimeStamp) {
@@ -195,12 +195,29 @@ Cbore& Cbore::key(int32_t unit) {
   return *this;
 }
 
+Cbore& Cbore::key(uint32_t unit) {
+  if ((itemSize(unit)) <= (maxLength - currentLength)) {
+    writeTypeAndValue(CborBase::TypeUnsigned, unit);
+  }
+
+  return *this;
+}
+
 // insert key as const char pointer with length
 Cbore& Cbore::key(const char* unit, std::size_t length) {
   if ((itemSize(static_cast<std::uint32_t>(length)) + length) <=
       (maxLength - currentLength)) {
     writeTypeAndValue(CborBase::TypeString, length);
     writeBytes(reinterpret_cast<const uint8_t*>(unit), length);
+  }
+
+  return *this;
+}
+
+Cbore& Cbore::key(std::string_view str) {
+  if ((itemSize(str)) <= (maxLength - currentLength)) {
+    writeTypeAndValue(CborBase::TypeString, str.size());
+    writeBytes(reinterpret_cast<const uint8_t*>(str.data()), str.size());
   }
 
   return *this;
@@ -222,12 +239,27 @@ Cbore& Cbore::value(int32_t unit) {
   return *this;
 }
 
+Cbore& Cbore::value(uint32_t unit) {
+  if ((itemSize(unit)) <= (maxLength - currentLength)) {
+    writeTypeAndValue(CborBase::TypeUnsigned, unit);
+  }
+
+  return *this;
+}
+
 Cbore& Cbore::value(CborBase::SimpleType_t unit) {
   if (currentLength < maxLength) {
     cbor[currentLength++] = CborBase::TypeSpecial << 5 | unit;
   }
 
   return *this;
+}
+
+Cbore& Cbore::value(bool unit) {
+  if (unit) {
+    return value(CborBase::TypeTrue);
+  }
+  return value(CborBase::TypeFalse);
 }
 
 Cbore& Cbore::value(const uint8_t* unit, std::size_t length) {
@@ -245,6 +277,16 @@ Cbore& Cbore::value(const char* unit, std::size_t length) {
       (maxLength - currentLength)) {
     writeTypeAndValue(CborBase::TypeString, length);
     writeBytes(reinterpret_cast<const uint8_t*>(unit), length);
+  }
+
+  return *this;
+}
+
+Cbore& Cbore::value(std::string_view unit) {
+  if ((itemSize(unit.size())) <=
+      (maxLength - currentLength)) {
+    writeTypeAndValue(CborBase::TypeString, unit.size());
+    writeBytes(reinterpret_cast<const uint8_t*>(unit.data()), unit.size());
   }
 
   return *this;
@@ -280,6 +322,14 @@ uint8_t Cbore::itemSize(uint32_t item) {
     return 3;
   }
   return 5;
+}
+
+uint8_t Cbore::itemSize(std::size_t item) {
+  return itemSize(static_cast<uint32_t>(item));
+}
+
+size_t Cbore::itemSize(std::string_view str) {
+  return (itemSize(str.size()) + str.size());
 }
 
 uint8_t Cbore::writeTypeAndValue(CborBase::MajorType_t majorType,
@@ -355,3 +405,4 @@ void Cbore::print() const {
   Cborg decoder(cbor, maxLength);
   decoder.print();
 }
+uint8_t Cbore::itemSizeBool() { return 1; }

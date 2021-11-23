@@ -544,6 +544,11 @@ Cborg Cborg::find(const char* key, std::size_t keyLength) const {
   return {nullptr, 0};
 }
 
+Cborg Cborg::getKey() { return *this; }
+bool Cborg::getKey(std::string& str) { return getString(str); }
+bool Cborg::getKey(int32_t& integer) { return getSigned(integer); }
+bool Cborg::getKey(uint32_t& integer) { return getUnsigned(integer); }
+
 Cborg Cborg::at(std::size_t index) const {
   CborgHeader head;
   head.decode(cbor);
@@ -553,12 +558,18 @@ Cborg Cborg::at(std::size_t index) const {
 
   // set units to elements in array
   int32_t units = head.getValue();
+
+  if (type == CborBase::TypeMap) {
+    units *= 2;  // double units for map type as we need to iterate both keys
+                 // and values.
+  }
+
   units = (simple == CborBase::TypeIndefinite) ? maxOf(units) : units;
 
   // only continue if container is Cbor Map, not empty, and index is within
   // bounds
-  if ((type != CborBase::TypeArray) || (units == 0) ||
-      (static_cast<int32_t>(index) >= units)) {
+  if ((type != CborBase::TypeArray && type != CborBase::TypeMap) ||
+      (units == 0) || (static_cast<int32_t>(index) >= units)) {
     return {nullptr, 0};
   }
 
@@ -670,37 +681,55 @@ uint32_t Cborg::getSize() const {
   return 0;
 }
 
-bool Cborg::getUnsigned(uint32_t* integer) const {
+bool Cborg::getUnsigned(uint32_t& integer) const {
   CborgHeader head;
   head.decode(cbor);
 
   if (head.getMajorType() == CborBase::TypeUnsigned) {
-    *integer = head.getValue();
+    integer = head.getValue();
 
     return true;
   }
   return false;
 }
 
-bool Cborg::getTimeStamp(time_t* timeStamp) const {
+bool Cborg::getTimeStamp(time_t& timeStamp) const {
   CborgHeader head;
   head.decode(cbor);
 
   if (head.getMajorType() == CborBase::TypeUnsigned && head.getTag() == 1) {
-    *timeStamp = head.getValue();
+    timeStamp = head.getValue();
 
     return true;
   }
   return false;
 }
 
-bool Cborg::getNegative(int32_t* integer) const {
+bool Cborg::getNegative(int32_t& integer) const {
   CborgHeader head;
   head.decode(cbor);
 
   if (head.getMajorType() == CborBase::TypeNegative) {
-    *integer = -1 - head.getValue();
+    integer = static_cast<std::int32_t>(-1) -
+              static_cast<std::int32_t>(head.getValue());
 
+    return true;
+  }
+  return false;
+}
+
+bool Cborg::getSigned(int32_t& integer) const {
+  CborgHeader head;
+  head.decode(cbor);
+
+  if (head.getMajorType() == CborBase::TypeNegative) {
+    integer = static_cast<std::int32_t>(-1) -
+              static_cast<std::int32_t>(head.getValue());
+
+    return true;
+  }
+  if (head.getMajorType() == CborBase::TypeUnsigned) {
+    integer = static_cast<std::int32_t>(head.getValue());
     return true;
   }
   return false;
@@ -847,7 +876,7 @@ void Cborg::print() const {
         case CborBase::TypeUnsigned: {
           Cborg object(&cbor[progress], maxLength - progress);
           uint32_t integer = 0;
-          bool result = object.getUnsigned(&integer);
+          bool result = object.getUnsigned(integer);
 
           if (result) {
             printf("%" PRIu32 "\r\n", integer);
@@ -859,7 +888,7 @@ void Cborg::print() const {
         case CborBase::TypeNegative: {
           Cborg object(&cbor[progress], maxLength - progress);
           int32_t integer = 0;
-          bool result = object.getNegative(&integer);
+          bool result = object.getNegative(integer);
 
           if (result) {
             printf("%" PRId32 "\r\n", integer);
@@ -949,3 +978,47 @@ void Cborg::print() const {
     }
   }
 }
+bool Cborg::getValueUnsigned(uint32_t& value) {
+  return getValue().getUnsigned(value);
+}
+
+bool Cborg::getValueNegative(int32_t& value) {
+  return getValue().getNegative(value);
+}
+bool Cborg::getValueSigned(int32_t& value) {
+  return getValue().getSigned(value);
+}
+bool Cborg::getValueTimeStamp(time_t& value) {
+  return getValue().getTimeStamp(value);
+}
+bool Cborg::getValueBytes(const uint8_t** pointer, uint32_t* length) {
+  return getValue().getBytes(pointer, length);
+}
+bool Cborg::getValueString(const char** pointer, uint32_t* length) {
+  return getValue().getString(pointer, length);
+}
+bool Cborg::getValueString(std::string& str) {
+  return getValue().getValueString(str);
+}
+
+Cborg Cborg::getValue() {
+  CborgHeader head;
+  std::size_t progress = 0;
+  /* semantic tag */
+  uint32_t tag = head.getTag();
+  uint8_t type = head.getMajorType();
+  uint8_t simple = head.getMinorType();
+  // increment progress based on cbor object size
+  if (((type == CborBase::TypeBytes) || (type == CborBase::TypeString)) &&
+      (simple != CborBase::TypeIndefinite)) {
+    progress += head.getLength() + head.getValue();
+  } else {
+    progress += head.getLength();
+  }
+  if (progress >= maxLength) {
+    return {nullptr, 0};
+  }
+  return {&cbor[progress], maxLength - progress};
+}
+
+bool Cborg::isNull() { return (cbor == nullptr); }

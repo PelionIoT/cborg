@@ -18,57 +18,75 @@
 #define __CBORG_H__
 
 #include <stdint.h>
+
 #include <cstddef>
 #include <string>
 
-#include "cborg/CborgHeader.h"
 #include "cborg/CborBase.h"
+#include "cborg/CborgHeader.h"
 
-class Cborg
-{
-public:
-    Cborg();
-    Cborg(const uint8_t* cbor, std::size_t maxLength);
+class Cborg {
+ public:
+  Cborg();
+  Cborg(const uint8_t* cbor, std::size_t maxLength);
 
-    /* Decode methods */
-    bool getCBOR(const uint8_t** pointer, uint32_t* length);
-    uint32_t getCBORLength();
+  bool isNull();
 
-    /* map functions */
-    template <std::size_t I>
-    Cborg find(const char (&key)[I])
-    {
-        return find(key, I - 1);
-    }
+  /* Decode methods */
+  bool getCBOR(const uint8_t** pointer, uint32_t* length);
+  uint32_t getCBORLength();
 
-    Cborg find(int32_t key) const;
-    Cborg find(const char* key, std::size_t keyLength) const;
+  /* map functions */
+  template <std::size_t I>
+  Cborg find(const char (&key)[I]) {
+    return find(key, I - 1);
+  }
 
-    Cborg at(std::size_t index) const;
+  Cborg find(int32_t key) const;
+  Cborg find(const char* key, std::size_t keyLength) const;
 
-    uint32_t getSize() const;
+  Cborg getKey();
+  bool getKey(std::string& str);
+  bool getKey(int32_t& str);
+  bool getKey(uint32_t& str);
 
-    /* non-container functions */
-    bool getUnsigned(uint32_t*) const;
-    bool getNegative(int32_t*) const;
+  Cborg getValue();
+  bool getValueUnsigned(uint32_t& value);
+  bool getValueNegative(int32_t& value);
+  bool getValueSigned(int32_t& value);
 
-    bool getTimeStamp(time_t*) const;
+  bool getValueTimeStamp(time_t& value);
 
-    bool getBytes(const uint8_t** pointer, uint32_t* length) const;
-    bool getString(const char** pointer, uint32_t* length) const;
-    bool getString(std::string& str) const;
+  bool getValueBytes(const uint8_t** pointer, uint32_t* length);
+  bool getValueString(const char** pointer, uint32_t* length);
+  bool getValueString(std::string& str);
 
-    /* pass through to header */
-    uint32_t getTag() const;
-    uint8_t getType() const;
-    uint8_t getMinorType() const;
+  [[nodiscard]] Cborg at(std::size_t index) const;
 
-    /* debug */
-    void print() const;
+  [[nodiscard]] uint32_t getSize() const;
 
-private:
-    const uint8_t* cbor;
-    std::size_t maxLength;
+  /* non-container functions */
+  bool getUnsigned(uint32_t&) const;
+  bool getNegative(int32_t&) const;
+  bool getSigned(int32_t&) const;
+
+  bool getTimeStamp(time_t&) const;
+
+  bool getBytes(const uint8_t** pointer, uint32_t* length) const;
+  bool getString(const char** pointer, uint32_t* length) const;
+  bool getString(std::string& str) const;
+
+  /* pass through to header */
+  uint32_t getTag() const;
+  uint8_t getType() const;
+  uint8_t getMinorType() const;
+
+  /* debug */
+  void print() const;
+
+ private:
+  const uint8_t* cbor;
+  std::size_t maxLength;
 };
 
-#endif // __CBORG_H__
+#endif  // __CBORG_H__

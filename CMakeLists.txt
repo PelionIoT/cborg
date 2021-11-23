@@ -1,3 +1,12 @@
+file(GLOB_RECURSE cbor_sources "*.cpp")
+
+set_property(
+        SOURCE ${cbor_sources}
+        APPEND
+        PROPERTY COMPILE_FLAGS
+        "-std=c++17")
+
+
 add_library(cborg-lib STATIC
         source/CborBase.cpp
         source/Cbore.cpp

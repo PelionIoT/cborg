@@ -21,6 +21,7 @@
 
 #include <chrono>
 #include <cstddef>
+#include <string_view>
 
 #include "cborg/CborBase.h"
 #include "cborg/CborgHeader.h"
@@ -72,7 +73,7 @@ class Cbore {
     if ((itemSize(static_cast<std::uint32_t>(I)) + I) <=
         (maxLength - currentLength)) {
       writeTypeAndValue(CborBase::TypeString, I - 1);
-      writeBytes(static_cast<const uint8_t*>(string), I - 1);
+      writeBytes(reinterpret_cast<const uint8_t*>(string), I - 1);
     }
 
     return *this;
@@ -100,6 +101,7 @@ class Cbore {
 
   // insert key as integer
   Cbore& key(int32_t unit);
+  Cbore& key(uint32_t unit);
 
   // insert key as const char array
   template <std::size_t I>
@@ -107,7 +109,7 @@ class Cbore {
     if ((itemSize(static_cast<std::uint32_t>(I)) + I) <=
         (maxLength - currentLength)) {
       writeTypeAndValue(CborBase::TypeString, I - 1);
-      writeBytes(static_cast<const uint8_t*>(unit), I - 1);
+      writeBytes(reinterpret_cast<const uint8_t*>(unit), I - 1);
     }
 
     return *this;
@@ -116,15 +118,22 @@ class Cbore {
   // insert key as const char pointer with length
   Cbore& key(const char* unit, std::size_t length);
 
+  // insert key as string view
+  Cbore& key(std::string_view str);
+
   /*************************************************************************/
   /* Map insertion - value                                                 */
   /*************************************************************************/
 
   // insert value as integer
   Cbore& value(int32_t unit);
+  Cbore& value(uint32_t unit);
 
   // insert value as simple type
   Cbore& value(CborBase::SimpleType_t value);
+
+  // insert value as simple bool
+  Cbore& value(bool value);
 
   // insert value as const char array
   template <std::size_t I>
@@ -132,7 +141,7 @@ class Cbore {
     if ((itemSize(static_cast<std::uint32_t>(I)) + I) <=
         (maxLength - currentLength)) {
       writeTypeAndValue(CborBase::TypeString, I - 1);
-      writeBytes(static_cast<const uint8_t*>(unit), I - 1);
+      writeBytes(reinterpret_cast<const uint8_t*>(unit), I - 1);
     }
 
     return *this;
@@ -143,6 +152,16 @@ class Cbore {
 
   // insert value as const char pointer with length
   Cbore& value(const char* unit, std::size_t length);
+
+  // insert value as string view
+  Cbore& value(std::string_view unit);
+
+  // get the size of an item (used to calculate buffer size)
+  static uint8_t itemSize(int32_t item);
+  static uint8_t itemSize(uint32_t item);
+  static uint8_t itemSize(std::size_t item);
+  static uint8_t itemSizeBool();
+  static size_t itemSize(std::string_view str);
 
   /*************************************************************************/
   /* Reset                                                                 */
@@ -157,8 +176,6 @@ class Cbore {
   void print() const;
 
  private:
-  uint8_t itemSize(int32_t item);
-  uint8_t itemSize(uint32_t item);
   uint8_t writeTypeAndValue(CborBase::MajorType_t majorType, uint32_t value);
   uint32_t writeBytes(const uint8_t* source, uint32_t length);
 
