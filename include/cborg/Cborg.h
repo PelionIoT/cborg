@@ -78,11 +78,13 @@ class Cborg {
   bool getBytes(const uint8_t** pointer, uint32_t* length) const;
   bool getString(const char** pointer, uint32_t* length) const;
   bool getString(std::string& str) const;
+  bool getBool(bool& bl) const;
 
   /* pass through to header */
-  uint32_t getTag() const;
-  uint8_t getType() const;
-  uint8_t getMinorType() const;
+  [[nodiscard]] std::uint32_t getTag() const;
+  [[nodiscard]] std::uint8_t getType() const;
+  [[nodiscard]] std::uint8_t getMajorType() const;
+  [[nodiscard]] std::uint8_t getMinorType() const;
 
   /* debug */
   void print() const;

@@ -884,6 +884,23 @@ bool Cborg::getString(std::string& str) const {
   return false;
 }
 
+bool Cborg::getBool(bool& bl) const {
+  CborgHeader head;
+  head.decode(cbor);
+
+  if (head.getMajorType() == CborBase::TypeSpecial ||
+      head.getMinorType() == CborBase::TypeTrue) {
+    bl = true;
+    return true;
+  }
+  if (head.getMajorType() == CborBase::TypeSpecial ||
+      head.getMinorType() == CborBase::TypeFalse) {
+    bl = false;
+    return true;
+  }
+  return false;
+}
+
 /*****************************************************************************/
 /* Header related                                                            */
 /*****************************************************************************/
@@ -896,6 +913,17 @@ uint32_t Cborg::getTag() const {
 }
 
 uint8_t Cborg::getType() const {
+  CborgHeader head;
+  head.decode(cbor);
+
+  std::uint8_t type = head.getMajorType();
+  if (type == CborBase::TypeSpecial) {
+    type = head.getMinorType();
+  }
+  return type;
+}
+
+uint8_t Cborg::getMajorType() const {
   CborgHeader head;
   head.decode(cbor);
 
@@ -1113,6 +1141,7 @@ bool Cborg::getValueString(std::string& str) {
 
 Cborg Cborg::getValue() {
   CborgHeader head;
+  head.decode(cbor);
   std::size_t progress = 0;
   /* semantic tag */
   uint32_t tag = head.getTag();
