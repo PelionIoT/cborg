@@ -17,9 +17,9 @@
 #ifndef __CBORG_H__
 #define __CBORG_H__
 
-#include <stdint.h>
-
 #include <cstddef>
+#include <cstdint>
+#include <limits>
 #include <string>
 
 #include "cborg/CborBase.h"
