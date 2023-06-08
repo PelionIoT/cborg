@@ -43,7 +43,9 @@ public:
 
     Cborg find(int32_t key) const;
     Cborg find(const char* key, std::size_t keyLength) const;
+    Cborg getKey(std::size_t index) const;
 
+    /* array functions */
     Cborg at(std::size_t index) const;
 
     uint32_t getSize() const;

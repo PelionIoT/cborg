@@ -346,6 +346,27 @@ void test8()
     encoder.print();
 }
 
+void test9()
+{
+    Cborg top(buffer, sizeof(buffer));
+
+    printf("Test 9: Iterate map.\r\n");
+
+    Cborg key = top.getKey(0);
+    std::string keyName;
+    key.getString(keyName);
+    Cborg val = top.find(keyName.c_str(), keyName.size());
+    uint32_t value;
+    val.getUnsigned(&value);
+    printf("First key: %s value: %d\r\n", keyName.c_str(), value);
+
+    key = top.getKey(1);
+    key.getString(keyName);
+    val = top.find(keyName.c_str(), keyName.size());
+    val.getUnsigned(&value);
+    printf("Second key: %s value: %d\r\n", keyName.c_str(), value);
+}
+
 /*****************************************************************************/
 /* App start                                                                 */
 /*****************************************************************************/
@@ -361,6 +382,8 @@ void app_start(int, char *[])
     test6();
     test7();
     test8();
+
+    test9();
 }
 
 /*****************************************************************************/

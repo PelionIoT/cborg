@@ -652,6 +652,139 @@ Cborg Cborg::find(const char* key, std::size_t keyLength) const
     return Cborg(NULL, 0);
 }
 
+Cborg Cborg::getKey(std::size_t index) const
+{
+    CborgHeader head;
+    head.decode(cbor);
+
+    uint8_t type = head.getMajorType();
+    uint8_t simple = head.getMinorType();
+
+    // set units to elements in array
+    int32_t units = head.getValue();
+    units = (simple == CborBase::TypeIndefinite) ? maxOf(units) : units;
+
+    // only continue if container is Cbor Map, not empty, and index is within bounds
+    if ((type != CborBase::TypeMap) || (units == 0) || ((int32_t) index >= units))
+    {
+        return Cborg(NULL, 0);
+    }
+
+    // got map, look for index
+    std::list<uint32_t> list;
+    std::size_t currentIndex = 0;
+
+    // skip map header
+    std::size_t progress = head.getLength();
+
+    // iterate through cbor encoded buffer
+    // stop when maximum length is reached or
+    // the current array is finished
+    while (progress < maxLength)
+    {
+        // compare current array index with the one sought for and return if found
+        if (currentIndex == index * 2)
+        {
+            return Cborg(&cbor[progress], maxLength - progress);
+        }
+        else
+        {
+            // decrement unit count unless set to indefinite
+            if (units != maxOf(units))
+            {
+                units--;
+            }
+
+            // increment to the next key (skip twice)
+            for (int i = 0; i < 2; i++)
+            {
+                // decode header for cbor object currently pointed to
+                head.decode(&cbor[progress]);
+
+                type = head.getMajorType();
+                simple = head.getMinorType();
+
+                // if object is a container type (map or array), push remaining units onto the stack (list)
+                // and set units to the number of elements in the new container.
+                if (type == CborBase::TypeMap)
+                {
+                    if (simple == CborBase::TypeIndefinite)
+                    {
+                        list.push_back(units);
+                        units = maxOf(units);
+                    }
+                    else if (head.getValue() > 0)
+                    {
+                        list.push_back(units);
+                        units = 2 * head.getValue();
+                    }
+                }
+                else if (type == CborBase::TypeArray)
+                {
+                    if (simple == CborBase::TypeIndefinite)
+                    {
+                        list.push_back(units);
+                        units = maxOf(units);
+                    }
+                    else if (head.getValue() > 0)
+                    {
+                        list.push_back(units);
+                        units = head.getValue();
+                    }
+                }
+                else if (((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+                        && (simple == CborBase::TypeIndefinite))
+                {
+                    list.push_back(units);
+                    units = maxOf(units);
+                }
+
+                // increment progress based on cbor object size
+                if (((type == CborBase::TypeBytes) || (type == CborBase::TypeString))
+                        && (simple != CborBase::TypeIndefinite))
+                {
+                    progress += head.getLength() + head.getValue();
+                }
+                else
+                {
+                    progress += head.getLength();
+                }
+
+                // finished processing all elements in the current container object
+                // step back up one level by popping remaining elements from the stack (list)
+                // do it in a while loop since we might have to step back up multiple times
+                while ((units == 0) || ((type == CborBase::TypeSpecial) && (simple == CborBase::TypeIndefinite)))
+                {
+                    type = CborBase::TypeSpecial;
+                    simple = CborBase::TypeNull;
+
+                    if (list.size() > 0)
+                    {
+                        // pop from stack
+                        units = list.back();
+                        list.pop_back();
+                    }
+                    else
+                    {
+                        // stack is empty, means we have reached the end of the current container
+                        // return a Cbor null object
+                        return Cborg(NULL, 0);
+                    }
+                }
+
+                // if element is on the top level, increment index counter
+                if (list.size() == 0)
+                {
+                    currentIndex++;
+                }
+            }
+        }
+    }
+
+    // index not found, return null object
+    return Cborg(NULL, 0);
+}
+
 Cborg Cborg::at(std::size_t index) const
 {
     CborgHeader head;
