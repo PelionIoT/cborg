@@ -367,6 +367,43 @@ void test9()
     printf("Second key: %s value: %d\r\n", keyName.c_str(), value);
 }
 
+void test10()
+{
+    uint8_t buffer[317];
+    Cbore encoder(buffer, 317);
+
+    encoder
+        .map(1)
+            .key("actions")
+            .array(1)
+                .map()
+                    .key("action").value("c2pa.repackaged")
+                    .key("when").tag(0).value("2022-11-18T19:47:11Z")
+                    .key("softwareAgent")
+                        .map(2)
+                            .key("name").value("Truepic libc2pa C++ Library")
+                            .key("version").value("3.1.28")
+                    .key("parameters")
+                        .map(1)
+                            .key("ingredients")
+                                .array(1)
+                                    .map(3)
+                                        .key("alg").value("sha256")
+                                        .key("hash").value("the_hash")
+                                        .key("url").value("the_url")
+                .end();
+
+    Cborg top(buffer, sizeof(buffer));
+
+    printf("Test 10: Iterate past map in map.\r\n");
+
+    Cborg map = top.find("actions").at(0);
+    Cborg key = map.getKey(3);
+    std::string keyName;
+    key.getString(keyName);
+    printf("Fourth key: %s\r\n", keyName.c_str());
+}
+
 /*****************************************************************************/
 /* App start                                                                 */
 /*****************************************************************************/
@@ -384,6 +421,7 @@ void app_start(int, char *[])
     test8();
 
     test9();
+    test10();
 }
 
 /*****************************************************************************/
