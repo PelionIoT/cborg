@@ -161,6 +161,7 @@ public:
 private:
     uint8_t itemSize(int32_t item);
     uint8_t writeTypeAndValue(CborBase::MajorType_t majorType, uint32_t value);
+    uint8_t writeFloat(double value);
     uint32_t writeBytes(const uint8_t* source, uint32_t length);
 
 private:
