@@ -124,8 +124,16 @@ Cbore& Cbore::item_f(double value)
     if (sizeof(double) < (maxLength - currentLength))
     {
         cbor[currentLength++] = CborBase::TypeSpecial << 5 | CborBase::TypeDoubleFloat;
-        memcpy(&cbor[currentLength], &value, sizeof(double));
-        currentLength += sizeof(double);
+        uint64_t temp = 0;
+        memcpy(&temp, &value, sizeof(double));
+        cbor[currentLength++] = (temp >> 56) & 0xFF;
+        cbor[currentLength++] = (temp >> 48) & 0xFF;
+        cbor[currentLength++] = (temp >> 40) & 0xFF;
+        cbor[currentLength++] = (temp >> 32) & 0xFF;
+        cbor[currentLength++] = (temp >> 24) & 0xFF;
+        cbor[currentLength++] = (temp >> 16) & 0xFF;
+        cbor[currentLength++] = (temp >> 8) & 0xFF;
+        cbor[currentLength++] = temp & 0xFF;
     }
 
     return *this;
