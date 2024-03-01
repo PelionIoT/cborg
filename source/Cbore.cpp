@@ -119,7 +119,7 @@ Cbore& Cbore::item(int32_t value)
 }
 
 // insert float
-Cbore& Cbore::item(double value)
+Cbore& Cbore::item_f(double value)
 {
     if (sizeof(double) < (maxLength - currentLength))
     {
@@ -247,7 +247,7 @@ Cbore& Cbore::value(int32_t unit)
 }
 
 // insert float
-Cbore& Cbore::value(double value)
+Cbore& Cbore::value_f(double value)
 {
     if (sizeof(double) < (maxLength - currentLength))
     {
