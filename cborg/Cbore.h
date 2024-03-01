@@ -56,6 +56,9 @@ public:
     // write <integer>
     Cbore& item(int32_t value);
 
+    // write <float>
+    Cbore& item(double value);
+
     // write <simple type>
     Cbore& item(CborBase::SimpleType_t simpleType);
 
@@ -117,6 +120,9 @@ public:
 
     // insert value as integer
     Cbore& value(int32_t unit);
+
+    // insert value as float
+    Cbore& value(double value);
 
     // insert value as simple type
     Cbore& value(CborBase::SimpleType_t value);

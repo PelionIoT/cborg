@@ -118,6 +118,19 @@ Cbore& Cbore::item(int32_t value)
     return *this;
 }
 
+// insert float
+Cbore& Cbore::item(double value)
+{
+    if (sizeof(double) < (maxLength - currentLength))
+    {
+        cbor[currentLength++] = CborBase::TypeSpecial << 5 | CborBase::TypeDoubleFloat;
+        memcpy(&cbor[currentLength], &value, sizeof(double));
+        currentLength += sizeof(double);
+    }
+
+    return *this;
+}
+
 // insert simple type
 Cbore& Cbore::item(CborBase::SimpleType_t simpleType)
 {
@@ -228,6 +241,19 @@ Cbore& Cbore::value(int32_t unit)
         {
             writeTypeAndValue(CborBase::TypeUnsigned, unit);
         }
+    }
+
+    return *this;
+}
+
+// insert float
+Cbore& Cbore::value(double value)
+{
+    if (sizeof(double) < (maxLength - currentLength))
+    {
+        cbor[currentLength++] = CborBase::TypeSpecial << 5 | CborBase::TypeDoubleFloat;
+        memcpy(&cbor[currentLength], &value, sizeof(double));
+        currentLength += sizeof(double);
     }
 
     return *this;
